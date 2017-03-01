@@ -1,11 +1,11 @@
 \documentclass[twocolumn,10pt]{article}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage[english]{babel}
+%\usepackage[english]{babel}
 \usepackage{biblatex}
 \usepackage[margin=1in]{geometry}
 \setlength{\columnsep}{33pt}
-\setcounter{secnumdepth}{0}
+\setcounter{secnumdepth}{1}
 \usepackage{minipage-marginpar}
 \newcommand\vfilbreak[1]{\vskip 0pt plus #1 \penalty-200 \vskip 0pt plus -#1}
 \newenvironment{mpmp}[1]
@@ -13,13 +13,14 @@
                {\end{minipagewithmarginpars}}
 \usepackage{morefloats}
 \usepackage{booktabs}
+\usepackage{color}
 
 \title{Lung Cancer detection with U-Net/Faster R-CNN \\
 nodule/region of interest proposal}
 \author{Jay Destories, Jason Fan, Alex Tong}
 \date{March 2017}
-\renewcommand{\floatpagefraction}{0.85}
-\renewcommand{\textfraction}{0.2}
+
+\newcommand{\temp}[1]{{\color{red}#1\\}}
 
 \begin{document}
 
@@ -27,8 +28,81 @@ nodule/region of interest proposal}
 \section{Introduction and \\Problem~Statement}
 The problem with segmentation and structure identification within the field of 
 biomedical imaging has become a well developed and very active field in the past
-years. In 2016 and 2015, the LUNA challenge and SPIE Lungx challege
+years. In 2016 and 2015, the LUng Nodule Annotation (LUNA) challenge and 
+SPIE Lungx challege, asked researchers to develop models to identify pulmonary 
+nodules in lung CT slices. In the 2016 LUNA Challange, researchers gained access
+to annotated CT slices that identified abnormal nodules but did not release data
+about the malignancy of the nodles. In the 2015 SPIE less than 80 CT annotated 
+images of malignant nodules were released to the public.
+
+However, with the 2017 Kaggle Data Science Bowl, a large\temp{ish} dataset of
+1000+ lung CT images in DICOM format was finally released with cancer/no cancer 
+labels. Preliminary investigations by Kaggle members
+using 3D-convolutional neural nets have already begun. There is one caveat to this 
+dataset; location of malignant nodules are not labeled. We seek to present a 
+novel pipeline for cancer detection by using techniques employed by region 
+proposal networks (RNN) and 
+biomedical image segmentation networks to extract high-risk regions to use for
+classification.
+
+\temp{Goals:?}
+\temp{Tuning Faster/fast RNN or YOLO to detect nodules}
+\temp{Using Alex-net or other 2GPU methods to train cancer classifier}
+\temp{Find ways to reduce false positive/false negatives}
+
 \section{Datasets}
-\section{Method and Pipeline}
+The number of lung CT scans available to us is very low. The total number of examples
+available are many orders of magnitudes smaller than the size of datasets for modern,
+state of the art classficiation challenges such as ImageNet or MSCOCO. 
+
+Listed below are the datsets we will leverage to train our classification/nodule
+extraction model.
+
+\begin{center}
+\begin{tabular}{lll}
+  \toprule
+  Dataset & \# CT scans & Label Type\\
+  \midrule
+  Kaggle&1000+&Cancer/No-cancer binary\\
+  LIDC-IDRI&888?&Nodule annotation\\
+  NLST&?&?\\
+  SPIE&80&Nodule annotation\\
+\end{tabular}
+\end{center}
+
+\subsection{Kaggle Data Science Bowl - (Kaggle)}
+\subsection{Lung Image Database Consortium image collection - (LIDC-IDRI)}
+\subsection{National Lung Screening Trial - (NLST)}
+\subsection{SPIE Lungx Challenge - (SPIE)}
+
+
+\section{Proposed Method/Algorithm/Pipeline}
+
+\temp{PIPELINE: NODULE EXTRACTION -> CNN -> CANCER CLASSIFICATION}
+\temp{Will we even use RNN? If so is UNET an RNN?}
+\temp{What kind of augmentations can we do in 3d? in the z axis?}
+\section{How we will evaluate our results}
+\temp{Visualizations of 3D convolutions?}
+\temp{Comparison between plain CNN vs. nodule extraction -> CNN? }
+\temp{Comparison between U-NET vs tuned FASTER R-CNN?}
+\temp{}
+\temp{
+	1) Nodule extraction with u-net, r-cnn roi proposal, or another pre-trained
+	model. TODO: what will be the extracted features be?! \\
+	2) leverage 2 GPU with alex-net like architechture to classify cancer
+	instances, we really dont have more data so we might have to train on the
+	kaggle dataset.
+}
+
 \section{About us}
+\temp{buncha kiddos who have no idea about anything}
+
+\section{Related Work}
+
+\section{Questions and challenges}
+\begin{enumerate}
+	\item What will the output of node-extraction be like?
+	\item What kind of novelty will we bring to the table?
+	\item How will we deal with the small dataset(s)?
+\end{enumerate}
 \end{document}
