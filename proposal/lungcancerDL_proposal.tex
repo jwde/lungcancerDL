@@ -20,7 +20,8 @@ nodule/region of interest proposal}
 \author{Jay Destories, Jason Fan, Alex Tong}
 \date{March 2017}
 
-\newcommand{\temp}[1]{{\color{red}#1\\}}
+\newcommand{\red}[1]{{\color{red}#1}}
+\newcommand{\temp}[1]{{\red{#1}\\}}
 
 \begin{document}
 
@@ -35,15 +36,40 @@ to annotated CT slices that identified abnormal nodules but did not release data
 about the malignancy of the nodles. In the 2015 SPIE less than 80 CT annotated 
 images of malignant nodules were released to the public.
 
-However, with the 2017 Kaggle Data Science Bowl, a large\temp{ish} dataset of
+However, with the 2017 Kaggle Data Science Bowl, a large\red{ish} dataset of
 1000+ lung CT images in DICOM format was finally released with cancer/no cancer 
 labels. Preliminary investigations by Kaggle members
 using 3D-convolutional neural nets have already begun. There is one caveat to this 
-dataset; location of malignant nodules are not labeled. We seek to present a 
-novel pipeline for cancer detection by using techniques employed by region 
-proposal networks (RNN) and 
-biomedical image segmentation networks to extract high-risk regions to use for
-classification.
+dataset; location of malignant nodules are not labeled. 
+
+Inspired by recent work in biomedical image segmentation, region proposal 
+networks and multiple instance learnign for whole mammogram classification,
+We seek to present a novel pipeline for cancer detection by combining
+region proposal and multiple instance learning (MIL).
+
+\section{Method/Algorithm/Pipeline}
+
+% \temp{PIPELINE: NODULE EXTRACTION -> CNN -> CANCER CLASSIFICATION}
+% \temp{Will we even use RNN? If so is UNET an RNN?}
+% \temp{What kind of augmentations can we do in 3d? in the z axis?}
+
+We will enhance multiple instance learning (MIL) by combining
+MIL with region proposal. We plan to leverage state of the 
+art region proposal networks to propose regions and implicitly weight instances 
+consumed by a downstream MIL classifier.
+
+In our pipeline a region proposal network trained on the LUNA dataset propose
+abnormal regions in CT slices. These regions are composed with 
+DICOM images are then fed into an MIL classifier that leverages AlexNet and 
+is based on the work on mammogram classfication by Zhu et. al.
+
+\subsection{Region Proposal Networks}
+We 
+\subsection{Multiple Instance Learning}
+
+\section{Goals}
+
+The main challenge that we face in lung cancer detection 
 
 \temp{Goals:?}
 \temp{Tuning Faster/fast RNN or YOLO to detect nodules}
@@ -76,11 +102,8 @@ extraction model.
 \subsection{SPIE Lungx Challenge - (SPIE)}
 
 
-\section{Proposed Method/Algorithm/Pipeline}
 
-\temp{PIPELINE: NODULE EXTRACTION -> CNN -> CANCER CLASSIFICATION}
-\temp{Will we even use RNN? If so is UNET an RNN?}
-\temp{What kind of augmentations can we do in 3d? in the z axis?}
+
 \section{How we will evaluate our results}
 \temp{Visualizations of 3D convolutions?}
 \temp{Comparison between plain CNN vs. nodule extraction -> CNN? }
