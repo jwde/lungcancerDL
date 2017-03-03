@@ -254,6 +254,11 @@ region proposals affect weakly labeled Multi-Instance Networks. We can then
 also quantify what affect these upstream techniques have on false positive and
 false negative classifications.
 
+One aspect to focus on specifically is the weight balance on the MI network
+between the region proposal data and the CT scan data. The proportion of
+weight allocated to each layer after training leads to some insight about how
+much the network uses the region proposal information in the final prediction process.
+
 \section{About us}
 \subsection{Jay DeStories}
 \subsection{Jason Fan}
@@ -263,7 +268,9 @@ who has failed to earn his master's in his fourth year of his undergraduate care
 Jason has lead the writing process so far.
 
 \subsection{Alex Tong}
-The resident know-it-all (i.e. genius).
+Alex works with Prof. Hassoun on metabolomics. He is most interested in 
+investigating the effects of the region proposal prior on the performance of
+the disease prediction network, in relation to models of visual attention \cite{NIPS2014_5542}. 
 
 \subsection{The Team}
 In the team, Jay and Jason have already partnered up to investigate a
