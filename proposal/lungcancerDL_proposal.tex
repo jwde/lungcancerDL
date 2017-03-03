@@ -17,7 +17,7 @@
 \usepackage{graphicx}
 
 \title{Lung Cancer Detection with \\Region Enhanced 
-Multi-Instance Networks}
+Multiple Instance Networks}
 \author{Jay Destories, Jason Fan, Alex Tong}
 \date{March 2017}
 
@@ -78,15 +78,14 @@ associate nodule presence with cancer.
 (2) Direct inference and classification methods
 instead attempts to directly predict the probability of cancer using x-ray and
 CT images without nodule detection
-\cite{Kuruvilla_2013, classificationOfNodules_2016}. \\
+\cite{Kuruvilla_2013, classificationOfNodules_2016}. 
 
 One challenge that almost all researchers in biomedical image inference face is 
 the problem with datasets being small and weakly labeled. Images labeled with
 cancer/no-cancer binaries are weakly labeled because imaged tissues only display
 malignancy locally; not \textit{all} of the tissue in an image will have cancer.
 Multi-Instance Networks have been trained from binary labels to classify whole
-mammogram images
-\cite{Maron:1998:FML:302528.302753}.
+mammogram images \cite{Maron:1998:FML:302528.302753}.
 
 \section{Method/Algorithm/Pipeline}
 % \temp{PIPELINE: NODULE EXTRACTION -> CNN -> CANCER CLASSIFICATION}
@@ -283,7 +282,8 @@ adapting region proposal methods to nodule detection. They also own the
 two GPUs :).
 
 Alex will take the lead in the downstream MIN and investigate other MI loss 
-functions that can enhance cancer detection.
+functions that can enhance cancer detection as well as the effect of region 
+proposal on overall MI network performance.
 
 \bibliographystyle{unsrt}%Used BibTeX style is unsrt
 \bibliography{proposal}
