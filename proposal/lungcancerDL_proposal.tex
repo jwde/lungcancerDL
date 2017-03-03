@@ -83,8 +83,9 @@ CT images without nodule detection
 One challenge that almost all researchers in biomedical image inference face is 
 the problem with datasets being small and weakly labeled. Images labeled with
 cancer/no-cancer binaries are weakly labeled because imaged tissues only display
-malignancy locally; not \textit{all} of the tissue an image will have cancer. As
-Multi-Instance Networks have been used to classify whole mammogram images
+malignancy locally; not \textit{all} of the tissue in an image will have cancer.
+Multi-Instance Networks have been trained from binary labels to classify whole
+mammogram images
 \cite{Maron:1998:FML:302528.302753}.
 
 \section{Method/Algorithm/Pipeline}
@@ -103,7 +104,7 @@ We plan to leverage state of the art region proposal and biomedical segmentation
 to indicate nodule presence and implicitly weight instances consumed by a 
 downstream Multi-Instance Network (MIN) classifier.
 
-In our pipeline, a region proposal network trained on the LUNA dataset to propose
+In our pipeline, a region proposal network is trained on the LUNA dataset to propose
 nodule annotations and abnormal regions in CT slices. This region proposal 
 is then used to annotate nodules in Kaggle dataset. Then a MIN classifier based 
 on the work on mammogram  classification by Lou et. al \cite{DBLP:journals/corr/ZhuLVX16},
@@ -177,7 +178,7 @@ The number of lung CT scans available to us is very low. The total number of exa
 available are many orders of magn{}itudes smaller than the size of datasets for modern,
 state of the art classification challenges such as ImageNet or MSCOCO.
 
-Listed below are the datsets we will leverage to train our classification/nodule
+Listed below are the datasets we will leverage to train our classification/nodule
 extraction model.
 
 \begin{center}
@@ -222,7 +223,7 @@ currently waiting for access to the NLST data.
 \subsection{Our goals}
 We have two primary goals in this investigation. First we want to know if region
 proposal and implicit instance weighting aid multiple instance learning. Second,
-we want to investigate the how leveraging depth information from our data helps
+we want to investigate how leveraging depth information from our data helps
 with inference with biomedical imaging.
 
 \subsection{How will we know what is going on?}
@@ -244,18 +245,21 @@ in both upstream and downstream networks.
 % }
 
 We think that one of the most important contribution this investigation will make
-is how we can perform biomedical inference with small, datasets that are not
+is how we can perform biomedical inference with small datasets that are not
 labeled homogeneously.
 Our network architecture allows us to plug and play, and even remove, upstream
 region proposal networks. 
 
 We can test different region proposal techniques and quantify how upstream
 region proposals affect weakly labeled Multi-Instance Networks. We can then
-also quantify what affect these upstream techniques have on false positive and
+also quantify what effects these upstream techniques have on false positive and
 false negative classifications.
 
 \section{About us}
 \subsection{Jay DeStories}
+Jay is working with Prof. Guyer on graph inference for social
+marketplaces. His background is primarily in systems and web engineering.
+
 \subsection{Jason Fan}
 The resident math major. Jason is currently working with Prof. Hescott on Graph
 related kernalized learning. Unfortunately, Jason the only team member 
