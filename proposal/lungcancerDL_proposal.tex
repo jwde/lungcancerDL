@@ -101,24 +101,37 @@ classification.
 
 We plan to leverage state of the art region proposal and biomedical segmentation
 to indicate nodule presence and implicitly weight instances consumed by a 
-downstream MIL classifier.
+downstream Multi-Instance Network (MIN) classifier.
 
 In our pipeline, a region proposal network trained on the LUNA dataset to propose
 nodule annotations and abnormal regions in CT slices. This region proposal 
-is then used to annotate nodules in Kaggle dataset. Then a MIL classifier based 
+is then used to annotate nodules in Kaggle dataset. Then a MIN classifier based 
 on the work on mammogram  classification by Lou et. al \cite{DBLP:journals/corr/ZhuLVX16},
 will be trained on the annotated Kaggle dataset.
 
 \subsection{Choosing the Region Proposal Network}
-We have three region proposal/image segmentation techniques we want to investigate.
+We have several region proposal networks we want to investigate.
 We will tune one segmentation/region proposal network for our final pipeline. 
+the region proposal networks that we suspect will yield promising results can 
+be classified int two categories.
 
-The first segmentation method we will test is U-Net, a CNN for biomedical
-segmentation developed by Brox et. al \cite{U-net_2015}. The second segmentation we 
-will test is the fully convolutional neural network developed by Darrell et al 
-\red{add ref} (Jay and Jason will be investigating this network as a paper 
-presentation). And the third region proprosal method we will test is 
-Faster R-CNN developed by He et. al \cite{fast_rcnn_2015, faster_rcnn_2015}.
+First, there exists segmentation networks based of U-Net, a seminal CNN for biomedical
+segmentation developed by Brox et. al \cite{U-net_2015}. The most easily accessible
+U-Net based pipeline for supervised biomedical image segmentation is 
+a pre-trained network, available on Caffe Model Zoo, for CT Liver Lesion 
+segmentation \cite{DBLP:journals/corr/ChristEETBBRAHD16}.
+
+Second, there exists other highly successful, and fast, region proposal and 
+segmentation networks developed for non-biomedical domains. We
+will test the fully convolutional neural network developed by Darrell et. al at
+Berkeley \cite{long_shelhamer_fcn} (Jay and Jason will be investigating this network as a paper 
+presentation). We will also test and try to adapt Faster R-CNN developed by He 
+et. al \cite{fast_rcnn_2015, faster_rcnn_2015} for nodule detection.
+
+Recent U-Net based segmentation leverage depth information whilst non-biomedical
+region proposal and segmentation networks do not use depth information. If time permits or
+if we deem necessary, we will attempt to adapt successful 2D methods to work in 3D. 
+
 
 %%%% This paragraph is better in this section, but (jason) can't quite make it flow/work
 
@@ -137,24 +150,27 @@ Faster R-CNN developed by He et. al \cite{fast_rcnn_2015, faster_rcnn_2015}.
 % here \cite{fcnn_and_rnn_3d_bio_2016}. Some other interesting papers 
 % \cite{CNN_Segmentation_Medical_Imaging_2017, Lai_2015}
 
-\subsection{The Multiple Instance Learner/Classifier}
+\subsection{The Multi-Instance Network}
 
-We will adapt MIL techniques developed for mammogram classification developed by
-Lou et. al \red{add ref}. Their implementation feeds the 6 by 6 by 256 output of the last
-convolutional layer of AlexNet as instances that are then consumed by three
-different MIL methods/losses \red{which is it? a loss or a method? where is the backprop}.
+We will adapt Multi-Instance Network (MIN) developed for mammogram classification developed by
+Lou et. al \cite{Maron:1998:FML:302528.302753} to lung cancer detection. 
+Their implementation feeds the 6 by 6 by 256 output of the last
+convolutional layer of AlexNet as instances to three Multi-Instance (MI) loss functions 
+that are then aggregated into a final loss.
 
 We will use the same architecture and first use 2D instances to look for 
-lung cancer. If time permits, we will adapt AlexNet to instead output 3D, voxel
-based convolutions as the output instances for MIL methods. We particularly like
-this AlexNet variant because, amongst the team, we own and have access to two
-NVidia 970 GPUs.
+lung cancer. If time permits, we will adapt the MIN to instead use 3D, voxel
+based convolutions as the output instances for MI loss functions. 
+
+We particularly like this AlexNet variant because, amongst the team, we own and 
+have access to two NVidia GTX 970 4GB GPUs.
 
 \subsection{Data Augmentation}
 
 One major challenge we will face will be the fact that we have a very small 
-collection of data.
-\temp{TODO:...}
+collection of data. We plan to heavily augment our data. Inspired by the MIN
+for mammogram classification, we plan to apply a new random set of augmentation
+to each epoch of training data.
 
 \section{Datasets}
 The number of lung CT scans available to us is very low. The total number of examples
@@ -182,7 +198,7 @@ approximately 200 2D slices.
 The Kaggle dataset will be obtained from the Kaggle Data Science Bowl 2017
 competition. The dataset consists of over 1000 CT scans in DICOM format labeled
 by a cancer/no-cancer binary. We will use this data train our downstream
- MIL classifier.
+ MIN classifier.
 
 The Lung Image Database Consortium (LIDC-IDRI) dataset is the dataset used in 
 the 2016 LUNA challenge.The dataset consists of over 1000 CT scans where
@@ -194,7 +210,7 @@ proposal network.
 The SPIE dataset is a minuscule but have a few important examples where nodules
 are both annotated and labeled benign or malignant. This dataset may help us 
 validate and visualize the convolutions happening in both the upstream
-region/nodule proposal and downstream MIL classifier.
+region/nodule proposal and downstream MIN classifier.
 
 We suspect that the National Lung Screening Trial (NLST) dataset will contain 
 about another 1000 CT scans that will either be labeled with the 
@@ -210,31 +226,53 @@ we want to investigate the how leveraging depth information from our data helps
 with inference with biomedical imaging.
 
 \subsection{How will we know what is going on?}
-\temp{
-  - visualize 2D convolutions in both upstream and downstream nets \\
-  - visualize 3D convs if we get to it in the downstream MIL net \\
-  - Use SPIE data to see how malignant vs benign tumors are `seen' by our network\\
-}
+% \temp{
+%   - visualize 2D convolutions in both upstream and downstream nets \\
+%   - visualize 3D convs if we get to it in the downstream MIL net \\
+%   - Use SPIE data to see how malignant vs benign tumors are `seen' by our network\\
+% }
 
+The SPIE dataset will give us insight as to how our network sees both benign
+and malignant nodules or tissues. We hope to visualize both 3D and 2D convolutions
+in both upstream and downstream networks.
 
 \subsection{Quantifying our results}
-\temp{
-  - COMPARE FASTER R-CNN with U-NET and other segmentation methods\\
-  - Figure out how the upstream region output effects downstream classifier\\
-  - Compare direct MIL classification with region enhanced MIL classification\\
-}
+% \temp{
+%   - COMPARE FASTER R-CNN with U-NET and other segmentation methods\\
+%   - Figure out how the upstream region output effects downstream classifier\\
+%   - Compare direct MIL classification with region enhanced MIL classification\\
+% }
+
+We think that one of the most important contribution this investigation will make
+is how we can perform biomedical inference with small, datasets that are not
+labeled homogeneously.
+Our network architecture allows us to plug and play, and even remove, upstream
+region proposal networks. 
+
+We can test different region proposal techniques and quantify how upstream
+region proposals affect weakly labeled Multi-Instance Networks. We can then
+also quantify what affect these upstream techniques have on false positive and
+false negative classifications.
 
 \section{About us}
-\temp{buncha kiddos who have no idea about anything}
+\subsection{Jay DeStories}
+\subsection{Jason Fan}
+The resident math major. Jason is currently working with Prof. Hescott on Graph
+related kernalized learning. Unfortunately, Jason the only team member 
+who has failed to earn his master's in his fourth year of his undergraduate career.
+Jason has lead the writing process so far.
 
+\subsection{Alex Tong}
+The resident know-it-all (i.e. genius).
 
+\subsection{The Team}
+In the team, Jay and Jason have already partnered up to investigate a
+fully convolutional image segmentation technique and will take the lead on
+adapting region proposal methods to nodule detection. They also own the
+two GPUs :).
 
-\section{Questions and challenges}
-\begin{enumerate}
-	\item What will the output of node-extraction be like?
-	\item What kind of novelty will we bring to the table?
-	\item How will we deal with the small dataset(s)?
-\end{enumerate}
+Alex will take the lead in the downstream MIN and investigate other MI loss 
+functions that can enhance cancer detection.
 
 \bibliographystyle{unsrt}%Used BibTeX style is unsrt
 \bibliography{proposal}
