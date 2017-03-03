@@ -16,8 +16,8 @@
 \usepackage{color}
 \usepackage{graphicx}
 
-\title{Lung Cancer Detection with Regional Proposal Networks and CNN derived
-Multiple Instance Learning}
+\title{Lung Cancer Detection with \\Region Enhanced 
+Multi-Instance Networks}
 \author{Jay Destories, Jason Fan, Alex Tong}
 \date{March 2017}
 
@@ -33,11 +33,12 @@ field of biomedical imaging has become a well developed and very active field in
 the past years. In 2016 and 2015, the LUng Nodule Annotation (LUNA) challenge and 
 SPIE Lungx challenge, asked researchers to develop models to identify pulmonary 
 nodules in lung CT slices. With the 2016 LUNA Challenge, researchers gained access
-to annotated CT slices that identified abnormal nodules but did not release data
-about the malignancy of the nodles. In the 2015 SPIE less than 80 CT annotated 
-images of malignant nodules were released to the public.
+to annotated CT slices that contained segmentation ground truths for abnormal 
+nodules but did not release data about the malignancy of the nodules. 
+In the 2015 SPIE less than 80 CT annotated images of malignant nodules were 
+released to the public.
 
-Finally, with the 2017 Kaggle Data Science Bowl, a large\red{ish} dataset of
+Finally, with the 2017 Kaggle Data Science Bowl, a larger dataset of
 1000+ lung CT images in DICOM format was finally released with cancer/no cancer 
 labels. This has allowed researchers to answer a deeper question about lung CT
 scans; whether or not there are indicators of malignancy and cancer in a patient's
@@ -48,8 +49,10 @@ Although the presence of malignancy is indicated by global, binary
 cancer/no-cancer label, the location of malignant nodules and structures are
 \textit{not} annotated in the training data.
 
-Inspired by recent work in biomedical image segmentation, region proposal 
-networks and multiple instance learning for whole mammogram classification,
+Inspired by recent work in biomedical image segmentation
+\cite{DBLP:journals/corr/ChristEETBBRAHD16}, region proposal 
+networks and multiple instance learning for whole mammogram classification
+\cite{Maron:1998:FML:302528.302753},
 We seek to present a novel pipeline for lung cancer detection that enhances
 multiple instance learning with region proposal.
 
@@ -73,13 +76,16 @@ associate nodule presence with cancer.
 
 %\red{HELP I MADE THIS TERM UP}
 (2) Direct inference and classification methods
-instead attempts to directly predict the probability of cancer using x-ray 
-images without nodule detection
+instead attempts to directly predict the probability of cancer using x-ray and
+CT images without nodule detection
 \cite{Kuruvilla_2013, classificationOfNodules_2016}. \\
 
-\temp{A short sentence/para here about MIL}
-
-
+One challenge that almost all researchers in biomedical image inference face is 
+the problem with datasets being small and weakly labeled. Images labeled with
+cancer/no-cancer binaries are weakly labeled because imaged tissues only display
+malignancy locally; not \textit{all} of the tissue an image will have cancer. As
+Multi-Instance Networks have been used to classify whole mammogram images
+\cite{Maron:1998:FML:302528.302753}.
 
 \section{Method/Algorithm/Pipeline}
 % \temp{PIPELINE: NODULE EXTRACTION -> CNN -> CANCER CLASSIFICATION}
@@ -178,13 +184,22 @@ competition. The dataset consists of over 1000 CT scans in DICOM format labeled
 by a cancer/no-cancer binary. We will use this data train our downstream
  MIL classifier.
 
-The LIDC-IDRI dataset is the dataset used in the 2016 LUNA challenge. We will use
-this dataset to train our upstream region/nodule proposal network.
+The Lung Image Database Consortium (LIDC-IDRI) dataset is the dataset used in 
+the 2016 LUNA challenge.The dataset consists of over 1000 CT scans where
+each nodule location and radius is annotated for each 2D slice. The dataset was
+annotated by 4 radiologists and nodules are annotated with varying levels of 
+agreement. We will use this dataset to train our upstream region/nodule 
+proposal network.
 
 The SPIE dataset is a minuscule but have a few important examples where nodules
 are both annotated and labeled benign or malignant. This dataset may help us 
 validate and visualize the convolutions happening in both the upstream
 region/nodule proposal and downstream MIL classifier.
+
+We suspect that the National Lung Screening Trial (NLST) dataset will contain 
+about another 1000 CT scans that will either be labeled with the 
+cancer/no-cancer or nodule annotations. We have applied for and are
+currently waiting for access to the NLST data.
 
 \section{Evaluating our results}
 
