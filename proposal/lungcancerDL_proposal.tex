@@ -78,6 +78,7 @@ associate nodule presence with cancer.
 (2) Direct inference and classification methods
 instead attempts to directly predict the probability of cancer using x-ray and
 CT images without nodule detection
+
 \cite{Kuruvilla_2013, classificationOfNodules_2016}. 
 
 One challenge that almost all researchers in biomedical image inference face is 
@@ -87,13 +88,25 @@ malignancy locally; not \textit{all} of the tissue in an image will have cancer.
 Multi-Instance Networks have been trained from binary labels to classify whole
 mammogram images \cite{Maron:1998:FML:302528.302753}.
 
+\subsection{\red{Reference Papers}}
+\begin{itemize}
+  \item Automatic Liver and Lesion Segmentation in {CT} using Cascaded Fully
+    Convolutional Neural Networks and 3D Conditional Random Fields
+    \cite{DBLP:journals/corr/ChristEETBBRAHD16},
+  \item Deep Multi-Instance Networks with Sparse Label Assignemnt for Whole 
+    Mammogram Classification \cite{Maron:1998:FML:302528.302753},
+  \item U-Net: Convolutional Network for Biomedical Segmentation
+    \cite{U-net_2015}.
+
+\end{itemize}
+
 \section{Method/Algorithm/Pipeline}
 % \temp{PIPELINE: NODULE EXTRACTION -> CNN -> CANCER CLASSIFICATION}
 % \temp{Will we even use RNN? If so is UNET an RNN?}
 % \temp{What kind of augmentations can we do in 3d? in the z axis?}
 
 
-\subsection{Outline of proposed pipeline}
+\subsection{\red{Architecture Overview}}
 Our Lung Cancer detection method uses nodule annotation to enhance direct
 classification. 
 \includegraphics[width=\columnwidth]{img/architecture.png}
@@ -108,6 +121,12 @@ nodule annotations and abnormal regions in CT slices. This region proposal
 is then used to annotate nodules in Kaggle dataset. Then a MIN classifier based 
 on the work on mammogram  classification by Lou et. al \cite{DBLP:journals/corr/ZhuLVX16},
 will be trained on the annotated Kaggle dataset.
+
+\subsection{Training}
+We will train the upstream and downstream networks seperately. Once the upstream,
+region proposal/segmentation network is trained, we will then replace the last layers
+of the upstream network with convolutional layers to learn the features that best
+associate region proposals with malignancy.
 
 \subsection{Choosing the Region Proposal Network}
 We have several region proposal networks we want to investigate.
@@ -258,6 +277,40 @@ One aspect to focus on specifically is the weight balance on the MI network
 between the region proposal data and the CT scan data. The proportion of
 weight allocated to each layer after training leads to some insight about how
 much the network uses the region proposal information in the final prediction process.
+
+\section{Results}
+
+\subsection{Evaluation of segmention methods}
+
+\newcommand{\tbox}[1]
+{\noindent\fbox{\parbox[c][5cm][c]{\columnwidth}{\begin{center} #1
+\end{center}
+}
+\vspace{0.5cm}
+}}
+
+\tbox{Loss vs Epoch for multiple segmenation networks with LUNA data}
+
+\tbox{Table of segmentation metrics, with IOU and pixel accuracy}
+
+\subsection{Visualizations for segmentation}
+
+\tbox{Ground truth vs output visualizations for good cases}
+
+\tbox{Ground truth vs output visualizations for bad cases}
+
+\section{Overall evaluation}
+
+Here, we evaluate the effect of upstream ROI proposals. We graph loss over
+epoch for each of our classifiers with different upstream networks. We also
+compare these networks with a vanilla classifier without upstream ROI proposals.
+
+We will produce graphs below with Kaggle validation data.
+
+\tbox{Loss vs Epoch for different classifiers}
+\tbox{Precision vs Recall curves for different classifiers}
+\tbox{ROC curves}
+\tbox{Table of AUC and accuracy}
 
 \section{About us}
 \subsection{Jay DeStories}
