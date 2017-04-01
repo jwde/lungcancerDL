@@ -7,4 +7,6 @@
 *.log
 *.run.xml
 *.synctex.gz
+.ipynb*
 
+.DS_Store

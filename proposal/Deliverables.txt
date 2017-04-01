@@ -1,0 +1,39 @@
+Deliverables
+
+Jay and Jason are primarily responsible for the upstream and Alex is primarily responsible for the downstream.
+
+Upstream:
+Preliminary Data Exploration
+Liver Segmentation Network (Jay):
+	LSN Example running (End of Spring Break)
+	LSN adapted for LUNA data 3/31
+	Complete LSN training pipeline 4/3
+U-Net (Jason):
+	U-Net Example running (End of Spring Break)
+	U-Net adapted for LUNA data 3/31
+	Complete U-Net training pipeline 4/3
+First Pass comparison U-Net and LSN networks trained on LUNA Data (Quantitative & Qualitative) 4/7
+
+Downstream (Alex):
+Kaggle 3d Conv Net training example (End of Spring Break)
+MIN for mammogram classification example working (End of Spring Break)
+MIN code adapted for Kaggle data 3/31
+MIN fine tuned on Kaggle data from mammogram pretraining 4/3
+
+Full Training (All):
+Weighted MIN (combining upstream and downstream): 4/7
+MIN code adapted to use upstream region proposal: 4/7
+Additional training for weighted MINs (LSN and U-Net) 4/12 — end
+
+Evaluation:
+Produce loss vs epoch graphs on Kaggle data (LSN vs U-Net upstream vs unweighted) 4/21
+Produce loss vs epoch graphs on Segmentation networks 4/21
+Produce Visualization of segmentation results 4/21
+Produce Visualizations of effect of upstream segmentations 4/21
+
+Hard Deadlines:
+Final Project Milestone 4/4
+Kaggle Submission 4/12 (We might not have had very much time to train at this point, we will submit anyway)
+Present 4/27
+Write paper (A more detailed plan to come) 5/12
+
