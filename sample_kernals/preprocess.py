@@ -14,7 +14,7 @@ from skimage import measure, morphology
 
 # Initialize constants
 MAIN_DIR = '../input/'
-INPUT_FOLDER = MAIN_DIR + 'sample_images/'
+INPUT_FOLDER = MAIN_DIR + 'stage1/'
 patients = os.listdir(INPUT_FOLDER)
 patients.sort()
 npat = len(patients)
@@ -239,6 +239,6 @@ def main_loop(INPUT_FOLDER,OUT_FOLDER,patient,npat):
     outfile = os.path.join(OUT_FOLDER, '%s.npy' % patient)
     np.save(outfile, pix_resampled)
 
-num_cores = 4
+num_cores = 8
 # Run parallelized loop over all patients
 Parallel(n_jobs=num_cores)(delayed(main_loop)(INPUT_FOLDER,OUT_FOLDER,patients[i],npat) for i in iterations)
