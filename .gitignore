@@ -8,5 +8,6 @@
 *.run.xml
 *.synctex.gz
 .ipynb*
+input/*
 
 .DS_Store
