@@ -8,10 +8,10 @@ import multiprocessing
 
 
 INPUT_DIR = '/tmp/input/3Darrays_stage1_2/'
-OUTPUT_DIR = '/tmp/input/3Darrays_visual_test/'
+OUTPUT_DIR = '/tmp/input/3Darrays_visual/'
 
 SAMPLE = None
-SAMPLE = 20
+#SAMPLE = 20
 HU_MIN = -1500
 HU_MAX = 500
 
