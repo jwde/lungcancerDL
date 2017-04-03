@@ -211,7 +211,7 @@ def segment_lung_mask1(image, fill_lung_structures=True):
  
     return binary_image
 #======================= Preprocess Images ==========================#
-OUT_FOLDER = MAIN_DIR + '3Darrays_stage1'
+OUT_FOLDER = MAIN_DIR + '3Darrays_stage1_2'
 if not os.path.exists(OUT_FOLDER):
     os.makedirs(OUT_FOLDER)
     
@@ -230,7 +230,7 @@ def main_loop(INPUT_FOLDER,OUT_FOLDER,patient,npat):
     dilated_mask = scipy.ndimage.morphology.binary_dilation(segmented_lungs_fill, iterations=5)
     # mask image
     masked_image = patient_pixels
-    masked_image[dilated_mask==0] = 0 # mask the image by logical indexing
+    masked_image[dilated_mask==0] = -10000 # mask the image by logical indexing
     # trim excess around ROI
     trimmed_pixels = trim_excess(dilated_mask, masked_image)
     # 2-stage resampling (equal spacing, lower resolution)
