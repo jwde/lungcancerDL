@@ -20,7 +20,7 @@ def get_training_lungs():
     for lung_id in get_labels_by_name().keys():
         f = lung_id + '.npy'
         lung_img = np.load(lungs_dir + f)
-        yield lung_img, lung_id
+        yield lung_img[:, 1:-2, 1:-2], lung_id
 
 def get_training_lung_labels():
     for lung_id in get_labels_by_name().keys():
