@@ -1,0 +1,53 @@
+\documentclass[10pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+%\usepackage[english]{babel}
+%\usepackage{biblatex}
+\usepackage[margin=1in]{geometry}
+\setlength{\columnsep}{33pt}
+\setcounter{secnumdepth}{2}
+\usepackage{minipage-marginpar}
+\newcommand\vfilbreak[1]{\vskip 0pt plus #1 \penalty-200 \vskip 0pt plus -#1}
+\newenvironment{mpmp}[1]
+               {\begin{minipagewithmarginpars}{#1}}
+               {\end{minipagewithmarginpars}}
+\usepackage{morefloats}
+\usepackage{booktabs}
+\usepackage{color}
+\usepackage{graphicx}
+
+\title{Lung Cancer Detection with \\Region Enhanced 
+Multiple Instance Networks}
+\author{Jay DeStories, Jason Fan, Alex Tong}
+\date{March 2017}
+
+\newcommand{\red}[1]{{\color{red}#1}}
+\newcommand{\temp}[1]{{\red{#1}\\}}
+
+\begin{document}
+\section{Timeline}
+\begin{tabular}{l | l | l }
+Deliverable & Leader & Deadline\\
+\hline
+Prelim Data exploration notebooks & & \\
+Liver Segmentaion Net (LSN) Running & & \\
+U-Net (UN) Running & & \\
+LSN code adapted for Lung data & & \\
+U-Net code adapted for Lung data & & \\
+LSN training for Lung data begun & & \\
+U-Net training for Lung data begun & & \\
+LSN training for Lung data complete & & \\
+U-Net training for Lung data complete & & \\
+
+\hline
+MIN Net Running & & \\
+MIN Net adapted for Lung data designed & & \\
+MIN Net adapted for Lung data begun training & & \\
+MIN Net adapted for Lung data finished training & & \\
+
+\hline
+Code complete for connecting MIN and Segmentation Net
+\end{tabular}
+\end{document}

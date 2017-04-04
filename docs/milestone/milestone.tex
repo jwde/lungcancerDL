@@ -1,0 +1,150 @@
+\documentclass[twocolumn,10pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+%\usepackage[english]{babel}
+%\usepackage{biblatex}
+\usepackage[margin=.75in]{geometry}
+\setlength{\columnsep}{33pt}
+\setcounter{secnumdepth}{2}
+\usepackage{minipage-marginpar}
+\newcommand\vfilbreak[1]{\vskip 0pt plus #1 \penalty-200 \vskip 0pt plus -#1}
+\newenvironment{mpmp}[1]
+               {\begin{minipagewithmarginpars}{#1}}
+               {\end{minipagewithmarginpars}}
+\usepackage{morefloats}
+\usepackage{booktabs}
+\usepackage{color}
+\usepackage{graphicx}
+
+\title{Lung Cancer Detection Milestone}
+\author{Jay DeStories, Jason Fan, Alex Tong}
+\date{March 2017}
+
+\newcommand{\red}[1]{{\color{red}#1}}
+\newcommand{\temp}[1]{{\red{#1}\\}}
+\renewcommand{\b}{\boldsymbol}
+
+\usepackage{enumitem}
+
+\begin{document}
+
+\maketitle
+\section{Introduction}
+
+In this document, we record the intermediary results for the Mult-Instance
+Network Lung Cancer Detection project.
+
+Please refer to project proposal for references to the proposed pipeline and
+techniques.
+
+\subsection{Things we didn't expect to be so difficult}
+
+Our team found the following two probelems more difficult than expected:
+\begin{enumerate}[noitemsep]
+  \item Getting working implementation of AlexNet and learning TensorFlow
+  \item Pre-processing Data and working with DICOM images
+\end{enumerate}
+
+\subsection{Problems with Pre-processing}
+
+With the LUNA and Kaggle Dicom data amounts to almost a terabyte of storage, we
+made some mistakes with data processing and had to process the Kaggle Data Twice.
+
+We had trouble converting Hounsville Units (hu), the unit of measurement for DICOM
+slice densities, to a sensible numeric value a traditional image classiication 
+network would be able to consume. 
+
+Hounsville Units measure density and map different parts of the human bodies to
+a high range of values, we experimented with the DICOM slices to find appropriate
+thresholded minimum and maximum values so that resulting images retained enough
+contrast.
+
+\temp{INSERT HISTOGRAM OF HU UNITS HERE}\\
+\temp{INSERT DICOM LUNG without morph closing with low contrast...}\\
+\temp{INSERT Pre-Processed image with segmented lung and threshholded values}\\
+
+\subsection{From AlexNet in Keras to VGG in TensorFlow}
+
+The Multi-Instance Network from the University of
+California Irvine (UCI) researchers was implemented with a custom, unmaintained
+version of Keras that we found, albeit too late, to be untenable. 
+
+We decided to move to using TensorFlow for clearer documentation and more support
+from the online community. At first, we found TensorFlow difficult to understand,
+but we eventually found a simple enough implementation of VGG to work with.
+(From: \texttt{github.com/machrisaa/tensorflow-vgg})
+
+\section{Pipeline Progress}
+We have implemented the following:
+\begin{enumerate}[noitemsep]
+  \item Memory concious RGB CNN to Grayscale CNN conversion
+  \item Feature extraction with pre-trained VGG-16
+  \item Feature extraction with pre-trained VGG-19
+  \item Multi-Instance 2-class logistic regression
+  \item Boosted decision tree
+\end{enumerate}
+
+\subsection{RGB to Grayscale conversion}
+The Keras implementation of Multi-Instance Network feeds the first convolutional
+an image of shape (224,224,3) in which the black and white dicom image is
+copied once onto each Blue, Red and Green channel.
+
+We attempted to mimick this technique with the stock VGG implementation to extract
+slice-wise image features from the last fully convolutional layer and found that
+we could not fit an entire lung volume into VRAM.
+
+We noticed that for weight vector $\b w$ along the channels axis of a convolution, the
+result of the convolution with pixel vector $\b x$ where each channel has value
+$\hat x$, channelwise mean $\b \mu$ and bias
+term $b$ was,
+
+$$\b w \ast (\b x - \b \mu) + b = (\b w \ast \b x) + (b - \b w \ast \b \mu)
+= \hat x \|\b w\|_1 + (b - \b w \ast \b \mu)$$
+
+Which meant that we could eliminate the redundant 3-channel input dimension and
+make any convolutional neural network effectively consume grayscale images by
+ manipulating pretrained weights and biases for the first layer. We simply sum
+ the convolution along the axis of the input channels dimension and subtract the
+ term $(\b w \ast \b \mu)$ from the bias.
+
+ We did this for both VGG-19 and VGG-19 and were able to forward pass entire
+ lung volumes to extract slice-wise features.
+
+\subsection{VGG feature extraction}
+\temp{ADD VGG AS A CITATION}
+We do the abovementioned RGB to Grayscale conversion for both VGG-19 and VGG-19 
+and were able to reduce VRAM usage and forward pass entire lung volumes to 
+extract slice-wise features. A feature tensor of shape (7, 7, 512) is extracted
+for each slice, where each of the 49 receptive fields is represented by a feature
+vector of length 512.
+
+The resulting bag of features that is then consumed by the
+Multi Instance 2-class Logistic Regression and Boosted Decision Tree Models,
+is a tensor of shape (60, 7, 7, 512).
+
+\subsection{Multi Instance 2-class logistic regression}
+\temp{ADD MIL CITATION}
+Let $F$ be a set of $N$ feature vectors that represent the instances of a given
+lung slice. 
+Then $\b r$, the vector of activations, is defined by elementwise by
+$$r_i = \b w^T \b f_i + b$$.
+Where $f_i$ and $r_i$ is the $i$-th elemebt of $\b r$ and $F$ respectively.
+
+We then use $\b r $ to predict the probability of cancer $p(y = 1)$ where
+$$t = p(y = 1) = \max_{r_i} \ \sigma(r_i)$$
+
+The authors of the Multi-Instance proposed the following per example loss functions
+to regularize hyperperameters at training time.
+
+Normal softmax loss:
+$$L_{max} = -\log(t^y + (1-t) ^{(1-y)})$$
+
+Sparse softmax loss:
+$$L_{max} = -\log(\lambda_t(t^y + (1-t) ^{(1-y)}) + \lambda_r\|\b r\|)$$
+
+$$$$
+\subsection {Boosted decision tree with XGBoost}
+
+\section{Intermediary results}
+\end{document}
