@@ -37,6 +37,9 @@ class Vgg16_bw:
 
         # Convert RGB to BGR
         #red, green, blue = tf.split(axis=3, num_or_size_splits=3, value=rgb_scaled)
+        #red = tf.identity(img)
+        #blue = tf.identity(img)
+        #green = tf.identity(img)
         #assert red.get_shape().as_list()[1:] == [224, 224, 1]
         #assert green.get_shape().as_list()[1:] == [224, 224, 1]
         #assert blue.get_shape().as_list()[1:] == [224, 224, 1]
@@ -48,7 +51,7 @@ class Vgg16_bw:
         #assert bgr.get_shape().as_list()[1:] == [224, 224, 3]
 
         # Subtract mean from black and white
-        self.conv1_input = img
+        self.conv1_input = img_scaled
 
         # feed neural net....
         self.conv1_1 = self.conv_layer(self.conv1_input, "conv1_1")
