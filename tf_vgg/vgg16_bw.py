@@ -12,9 +12,9 @@ BW_MEAN = np.mean(VGG_MEAN)
 class Vgg16_bw:
     def __init__(self, vgg16_npy_path=None):
         if vgg16_npy_path is None:
-            path = inspect.getfile(Vgg16)
+            path = inspect.getfile(Vgg16_bw)
             path = os.path.abspath(os.path.join(path, os.pardir))
-            path = os.path.join(path, "vgg16.npy")
+            path = os.path.join(path, "vgg16_bw.npy")
             vgg16_npy_path = path
             print(path)
 
