@@ -6,7 +6,7 @@ import tensorflow as tf
 import time
 
 VGG_MEAN = [103.939, 116.779, 123.68]
-BW_MEAN = np.mean(VGG_MEAN)
+BW_MEAN = [np.mean(VGG_MEAN)]
 
 
 class Vgg16_bw:
@@ -48,7 +48,7 @@ class Vgg16_bw:
         #assert bgr.get_shape().as_list()[1:] == [224, 224, 3]
 
         # Subtract mean from black and white
-        self.conv1_input = img - BW_MEAN
+        self.conv1_input = img
 
         # feed neural net....
         self.conv1_1 = self.conv_layer(self.conv1_input, "conv1_1")
