@@ -1,4 +1,5 @@
 *.aux
+*.npy
 *.swp
 /data/*
 *.bbl

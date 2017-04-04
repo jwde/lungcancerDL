@@ -3,7 +3,7 @@ import os
 from itertools import islice
 import numpy as np
 
-DATA_DIR = '/notebooks/sharedfolder/lungcancerdl/input/'
+DATA_DIR = '/notebooks/sharedfolder/input/'
 lungs_dir = DATA_DIR + '3Darrays_visual/'
 labels_file = DATA_DIR + 'stage1_labels.csv'
 vgg_features_dir = DATA_DIR + 'vgg_training/'
