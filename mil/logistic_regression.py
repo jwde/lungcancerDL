@@ -4,7 +4,7 @@ import tensorflow as tf
 import numpy as np
 
 class Logistic_Regression:
-    def __init__(self, input_dims = [784], output_dim = 10, lr_npy_path=None, trainable=True):
+    def __init__(self, input_dims = [784], output_dims = [10], lr_npy_path=None, trainable=True):
         if lr_npy_path is not None:
             try:
                 self.data_dict = np.load(lr_npy_path, encoding='latin1').item()
@@ -17,16 +17,21 @@ class Logistic_Regression:
 
         self.var_dict = {}
         self.trainable = trainable
+        self.input_dims = input_dims
+        self.output_dims = output_dims
 
         w_dims = list(input_dims.copy())
-        w_dims.append(output_dim)
+        w_dims.extend(output_dims)
         # Set model weights
         w_init = tf.zeros(w_dims)
         self.W = self.get_var(w_init, 'W', 0, 'weights')
-        self.b = self.get_var(tf.zeros([output_dim]), 'b', 0, 'biases')
+        self.b = self.get_var(tf.zeros(output_dims), 'b', 0, 'biases')
 
     def build(self, x):
-        self.pred = tf.nn.softmax(tf.matmul(x, self.W) + self.b) # Softmax
+        self.W = tf.reshape(self.W,[self.input_dims[-1], -1])
+        tmp = tf.matmul(x, self.W)
+        tmp = tf.reshape(tmp, self.output_dims) 
+        self.pred = tf.nn.softmax(tmp + self.b) # Softmax
 
     def get_var(self, initial_value, name, idx, var_name):
         if self.data_dict is not None and name in self.data_dict:
@@ -68,7 +73,8 @@ class Logistic_Regression:
         return count
 
     def cross_entropy_loss(self, y):
-        return tf.reduce_mean(-tf.reduce_sum(y*tf.log(self.pred), reduction_indices=1))
+        #p = tf.reduce_sum(self.pred) #, reduction_indices = 1)
+        return tf.reduce_mean(-tf.reduce_sum(tf.matmul(y,tf.log(self.pred)), reduction_indices=1))
 
 def train_mnist():
     from tensorflow.examples.tutorials.mnist import input_data
@@ -82,7 +88,7 @@ def train_mnist():
     y = tf.placeholder(tf.float32, [None, 10]) 
 
     # Construct model
-    lr = Logistic_Regression(input_dims = [784], output_dim = 10, lr_npy_path = 'lr-save.npy')
+    lr = Logistic_Regression(input_dims = [784], output_dims = [10,2], lr_npy_path = 'lr-save.npy')
     lr.build(x)
 
     # Launch the graph
