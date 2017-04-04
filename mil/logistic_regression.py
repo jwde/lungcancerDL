@@ -100,6 +100,8 @@ def train_mnist():
             # Loop over all batches
             for i in range(total_batch):
                 batch_xs, batch_ys = mnist.train.next_batch(batch_size)
+                print batch_xs.shape
+                print batch_ys.shape
                 # Fit training using batch data
                 _, c = sess.run([optimizer, cost], feed_dict={x: batch_xs,
                                                               y: batch_ys})
@@ -116,7 +118,7 @@ def train_mnist():
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
         print ("Accuracy:", accuracy.eval({x: mnist.test.images[:3000], y: mnist.test.labels[:3000]}))
         print ("Saving")
-        lr.save_npy(sess)
+        #lr.save_npy(sess)
 
 if __name__ == '__main__':
     train_mnist()
