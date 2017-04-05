@@ -7,6 +7,7 @@ DATA_DIR = '/notebooks/sharedfolder/lungcancerdl/input/'
 lungs_dir = DATA_DIR + '3Darrays_visual/'
 labels_file = DATA_DIR + 'stage1_labels.csv'
 vgg_features_dir = DATA_DIR + 'vgg_training/'
+vgg19_features_dir = DATA_DIR + 'vgg19_training/'
 
 def get_labels_by_name():
     if not hasattr(get_labels_by_name, 'labels_by_name'):
@@ -50,4 +51,10 @@ def get_training_vgg_features():
     for lung_id in get_labels_by_name().keys():
         f = lung_id + '.npy'
         lung_features = np.load(vgg_features_dir + f)
+        yield lung_features, lung_id
+
+def get_training_vgg19_features():
+    for lung_id in get_labels_by_name().keys():
+        f = lung_id + '.npy'
+        lung_features = np.load(vgg19_features_dir + f)
         yield lung_features, lung_id

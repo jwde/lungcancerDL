@@ -1,0 +1,15 @@
+As a preliminary evaluation of the features extracted using VGG, we trained gradient boosted decision trees on the VGG-16 and VGG-19 features. One challenge we discovered is that the features take up too much space to fit the entire dataset into memory. For the following results, we loaded the first 500 lungs for training and used 100 lungs for validation. We used a max depth of 10 and recorded the final error, area under curve, and log loss on the validation set for each set of input features.
+
+\begin{center}
+\begin{tabular}{ | c c c c | }
+\hline
+Features & Error & AUC & Log Loss \\ [0.5ex]
+\hline\hline
+VGG-16 & 0.25 & 0.521739 & 0.611064
+\hline
+VGG-19 & 0.26 & 0.440429 & 0.672109
+\hline
+\end{tabular}
+\end{center}
+
+In all cases the boosted decision trees reached perfect error and area under curve within a few rounds. It's clear from our results that this model overfits significantly, but this provides a good baseline for further work.
