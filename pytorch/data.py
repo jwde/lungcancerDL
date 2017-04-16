@@ -3,15 +3,14 @@ import torch.utils.data as data
 import csv
 import numpy as np
 from itertools import islice
-from lung_utils import hu_to_visual_features
+from .lung_utils import hu_to_visual_features
 
 DATA_DIR = '/notebooks/sharedfolder/lungcancerdl/input/'
 lungs_dir = DATA_DIR + '3Darrays_visual/'
 labels_file = DATA_DIR + 'stage1_labels.csv'
 
 def load_img(path):
-    img = np.load(path)
-    return torch.from_numpy(img)
+    return np.load(path)
 
 class LabeledKaggleDataset(data.Dataset):
     def __init__(self, image_dir, labels_path, slice_start, slice_end, input_transform=None, target_transform=None):
@@ -30,9 +29,10 @@ class LabeledKaggleDataset(data.Dataset):
     def __getitem__(self, index):
         f = self.lung_names[index] + '.npy'
         img = load_img(self.image_dir + f)
-        img = hu_to_visual_features(img)
-        img = torch.fromNumpyArray(img)
-        target = self.lung_labels[index]
+        img = hu_to_visual_features(img, -1500, 500)
+        img = torch.from_numpy(img)
+        target = torch.DoubleTensor(1, 1)
+        target[0,0] = self.lung_labels[index]
         if self.input_transform:
             img = self.input_transform(img)
         if self.target_transform:

@@ -1,4 +1,6 @@
+import torch
 import torch.nn as nn
+from torch.autograd import Variable
 import math
 
 class MIL(nn.Module):
@@ -38,3 +40,24 @@ class MIL(nn.Module):
                 n = m.weight.size(1)
                 m.weight.data.normal_(0, 0.01)
                 m.bias.data.zero_()
+
+
+class MILCriterion(nn.Module):
+    def __init__(self, w, sparsity, cuda=False):
+        super(MILCriterion, self).__init__()
+        self.crossent = nn.BCELoss()
+        self.l1 = nn.L1Loss(size_average=False)
+        self.l1_zeros = None
+        self.w = w
+        self.cuda = cuda
+        self.sparsity = sparsity
+    def forward(self, input, target):
+        pred, mil = input
+        loss = self.w * self.crossent(pred, target)
+        if not self.l1_zeros:
+            if self.cuda:
+                self.l1_zeros = Variable(torch.DoubleTensor(mil.size()).cuda(), requires_grad=False)
+            else:
+                self.l1_zeros = Variable(torch.DoubleTensor(mil.size()), requires_grad=False)
+        loss += self.sparsity * self.l1(mil, self.l1_zeros)
+        return loss
