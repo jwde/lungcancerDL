@@ -56,8 +56,8 @@ class MILCriterion(nn.Module):
         loss = self.w * self.crossent(pred, target)
         if not self.l1_zeros:
             if self.cuda:
-                self.l1_zeros = Variable(torch.DoubleTensor(mil.size()).cuda(), requires_grad=False)
+                self.l1_zeros = Variable(torch.FloatTensor(mil.size()).cuda(), requires_grad=False)
             else:
-                self.l1_zeros = Variable(torch.DoubleTensor(mil.size()), requires_grad=False)
+                self.l1_zeros = Variable(torch.FloatTensor(mil.size()), requires_grad=False)
         loss += self.sparsity * self.l1(mil, self.l1_zeros)
         return loss
