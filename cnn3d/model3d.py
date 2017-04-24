@@ -26,8 +26,10 @@ class Cnn3d(nn.Module):
             nn.MaxPool3d(kernel_size=3, stride=2, padding=1))
            # nn.Conv3d(16, 16, kernel_size=(1,3,3), stride=(1,1,1), padding=(0,1,1)))
         self.predict = nn.Sequential(
+            # per-instance logistic regression implemented as a 1x1 convolution
+            # to elementwise sigmoid, to max pool
             nn.Conv3d(16, 1, kernel_size=1, stride=1, padding=0),
-            #nn.Sigmoid(),
+            nn.Sigmoid(),
             nn.MaxPool3d(kernel_size=(8,8,8), stride=1, padding=0)
         )
 
@@ -38,7 +40,9 @@ class Cnn3d(nn.Module):
 
 
     def forward(self, x):
+        size = x.size()
         x = self.features(x)
         pred = self.predict(x)
+        pred = pred.view(size[0])
         return pred
 
