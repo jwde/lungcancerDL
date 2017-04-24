@@ -29,9 +29,9 @@ class LabeledKaggleDataset(data.Dataset):
     def __getitem__(self, index):
         f = self.lung_names[index] + '.npy'
         img = load_img(self.image_dir + f)
-        #img = hu_to_visual_features(img, -1500, 500)
-        img = torch.from_numpy(img)
-        target = torch.DoubleTensor(1, 1)
+        img = hu_to_visual_features(img, -1500, 500)
+        img = torch.from_numpy(img).float()
+        target = torch.FloatTensor(1, 1)
         target[0,0] = self.lung_labels[index]
         if self.input_transform:
             img = self.input_transform(img)
@@ -58,9 +58,9 @@ class LabeledKaggleDataset2D(LabeledKaggleDataset):
     def __getitem__(self, index):
         f = self.lung_names[index] + '.npy'
         img = load_img(self.image_dir + f)
-        #img = hu_to_visual_features(img, -1500, 500)
-        img = torch.from_numpy(img)
-        target = torch.doubletensor(1, 1)
+        img = hu_to_visual_features(img, -1500, 500)
+        img = torch.from_numpy(img).float()
+        target = torch.FloatTensor(1, 1)
         target[0,0] = self.lung_labels[index]
         img = img[30]
         G = img.clone()

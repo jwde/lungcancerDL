@@ -43,6 +43,6 @@ class Cnn3d(nn.Module):
         size = x.size()
         x = self.features(x)
         pred = self.predict(x)
-        pred = pred.view(size[0])
+        pred = pred.view(-1, 1)
         return pred
 
