@@ -46,5 +46,5 @@ class LabeledKaggleDataset(data.Dataset):
 def get_training_set(lungs_dir, labels_file):
     return LabeledKaggleDataset(lungs_dir, labels_file, 0, 1000)
 
-def get_test_set(lungs_dir, labls_file):
+def get_test_set(lungs_dir, labels_file):
     return LabeledKaggleDataset(lungs_dir, labels_file, 1000, 1397)
