@@ -5,9 +5,9 @@ import numpy as np
 from itertools import islice
 from .lung_utils import hu_to_visual_features
 
-DATA_DIR = '/notebooks/sharedfolder/lungcancerdl/input/'
-lungs_dir = DATA_DIR + '3Darrays_visual/'
-labels_file = DATA_DIR + 'stage1_labels.csv'
+#DATA_DIR = '/notebooks/sharedfolder/lungcancerdl/input/'
+#lungs_dir = DATA_DIR + '3Darrays_visual/'
+#labels_file = DATA_DIR + 'stage1_labels.csv'
 
 def load_img(path):
     return np.load(path)
@@ -43,8 +43,8 @@ class LabeledKaggleDataset(data.Dataset):
         return len(self.lung_names)
             
 
-def get_training_set():
+def get_training_set(lungs_dir, labels_file):
     return LabeledKaggleDataset(lungs_dir, labels_file, 0, 1000)
 
-def get_test_set():
+def get_test_set(lungs_dir, labls_file):
     return LabeledKaggleDataset(lungs_dir, labels_file, 1000, 1397)
