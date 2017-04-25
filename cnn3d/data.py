@@ -49,10 +49,10 @@ class LabeledKaggleDataset(data.Dataset):
             
 
 def get_training_set(lungs_dir, labels_file):
-    return LabeledKaggleDataset(lungs_dir, labels_file, 0, 100)
+    return LabeledKaggleDataset(lungs_dir, labels_file, 0, 50)
 
 def get_test_set(lungs_dir, labels_file):
-    return LabeledKaggleDataset(lungs_dir, labels_file, 100, 120)
+    return LabeledKaggleDataset(lungs_dir, labels_file, 50, 60)
 
 class LabeledKaggleDataset2D(LabeledKaggleDataset):
     def __init__(self, image_dir, labels_path, slice_start, slice_end, input_transform=None, target_transform=None):

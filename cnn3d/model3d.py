@@ -10,21 +10,21 @@ class Cnn3d(nn.Module):
     def init_layers(self, weight_init):
         self.features = nn.Sequential(
             # Reducing only along XY
-            nn.Conv3d(1, 16, kernel_size=(1,3,3), stride=(1,1,1), padding=(0,1,1)),
+            nn.Conv3d(1, 32, kernel_size=(1,3,3), stride=(1,1,1), padding=(0,1,1)),
             nn.ReLU(inplace=True),
             nn.MaxPool3d(kernel_size=(1,2,2), stride=(1,2,2), padding=(0,0,0)),
 
-            nn.Conv3d(16, 16, kernel_size=(1,3,3), stride=(1,1,1), padding=(0,1,1)),
+            nn.Conv3d(32, 32, kernel_size=(1,3,3), stride=(1,1,1), padding=(0,1,1)),
             nn.ReLU(inplace=True),
             nn.MaxPool3d(kernel_size=(1,2,2), stride=(1,2,2), padding=(0,0,0)),
 
             #Now volumes are cubic... we can use actual 3d convs:w
-            nn.Conv3d(16, 16, kernel_size=(3,3,3), stride=(1,1,1), padding=(1,1,1)),
-            nn.Conv3d(16, 16, kernel_size=(3,3,3), stride=(1,1,1), padding=(1,1,1)),
+            nn.Conv3d(32, 32, kernel_size=(3,3,3), stride=(1,1,1), padding=(1,1,1)),
+            nn.Conv3d(32, 32, kernel_size=(3,3,3), stride=(1,1,1), padding=(1,1,1)),
             nn.ReLU(inplace=True),
             nn.MaxPool3d(kernel_size=2, stride=2, padding=0),
 
-            nn.Conv3d(16, 32, kernel_size=(3,3,3), stride=(1,1,1), padding=(1,1,1)),
+            nn.Conv3d(32, 32, kernel_size=(3,3,3), stride=(1,1,1), padding=(1,1,1)),
             nn.Conv3d(32, 32, kernel_size=(3,3,3), stride=(1,1,1), padding=(1,1,1)),
             nn.ReLU(inplace=True),
             nn.MaxPool3d(kernel_size=2, stride=2, padding=0),
@@ -38,9 +38,9 @@ class Cnn3d(nn.Module):
             # per-instance logistic regression implemented as a 1x1 convolution
             # to elementwise sigmoid, to max pool
             nn.Conv3d(64, 128, kernel_size=1, stride=1, padding=0),
-            nn.Conv3d(128, 128, kernel_size=1, stride=1, padding=0),
-            #nn.MaxPool3d(kernel_size=(7,7,7), stride=1, padding=0)
-            nn.Conv3d(128, 1, kernel_size=7, stride=1, padding=0),
+            nn.Conv3d(128, 1, kernel_size=1, stride=1, padding=0),
+            nn.MaxPool3d(kernel_size=(7,7,7), stride=1, padding=0),
+            #nn.Conv3d(128, 1, kernel_size=7, stride=1, padding=0),
             nn.Sigmoid(),
         )
 

@@ -73,7 +73,10 @@ def train_model(model,dset_loaders, criterion, optimizer, lr_scheduler=None, num
                 #_, preds = torch.max(outputs.data, 1)
                 #print (labels.size())
                 #labels have size (batch, 1,1)?
-                loss = criterion(outputs, labels)
+                weights = 0.75 * labels.data + 0.25 * (1 - labels.data)
+                weights = weights.view(1,1).float()
+                crit = nn.BCELoss(weight=weights)
+                loss = crit(outputs, labels)
 
                 # backward + optimize only if in training phase
                 if phase == 'train':
@@ -124,18 +127,24 @@ def exp_lr_scheduler(optimizer, epoch, init_lr=0.001, lr_decay_epoch=7):
 ####
 LR = 0.0001
 MOMENTUM = 0.9
-NUM_EPOCHS = 10
-WEIGHT_INIT = 1e-2
+NUM_EPOCHS = 3
+WEIGHT_INIT = 1e-3
 DECAY = None
+def randval(low, high):
+    return (low-high) * np.random.random_sample() + low
 def main():
-    net = Cnn3d(WEIGHT_INIT)
-    if torch.cuda.is_available():
-        net = net.cuda()
-    criterion = nn.BCELoss()
-    dset_loaders = get_dset_loaders(lungs_dir, labels_file)
-    optimizer_ft = optim.SGD(net.parameters(), lr=LR, momentum=MOMENTUM)
-    optimizer_ft = optim.Adam(net.parameters(), lr=LR)
-    model_ft = train_model(net,dset_loaders, criterion, optimizer_ft, num_epochs=NUM_EPOCHS, verbose=True)
+    while(True):
+        LR = randval(0.01, 0.00001)
+        WEIGHT_INIT = randval(0.01, 0.00001)
+        print ("LR : {}, weight : {}".format(LR, WEIGHT_INIT))
+        net = Cnn3d(WEIGHT_INIT)
+        if torch.cuda.is_available():
+            net = net.cuda()
+        criterion = nn.BCELoss()
+        dset_loaders = get_dset_loaders(lungs_dir, labels_file)
+        #optimizer_ft = optim.SGD(net.parameters(), lr=LR, momentum=MOMENTUM)
+        optimizer_ft = optim.Adam(net.parameters(), lr=LR)
+        model_ft = train_model(net,dset_loaders, criterion, optimizer_ft, num_epochs=NUM_EPOCHS, verbose=False)
 
 if __name__ == '__main__':
     main()
