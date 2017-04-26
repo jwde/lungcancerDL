@@ -7,7 +7,7 @@ import copy
 import argparse
 
 # Within package
-from models import Cnn3d
+import models
 import util
 
 def train_model(model,dset_loaders, criterion, optimizer, lr_scheduler=None, num_epochs=25, verbose = False):
@@ -72,7 +72,6 @@ def train_model(model,dset_loaders, criterion, optimizer, lr_scheduler=None, num
 
             epoch_loss = running_loss / len(dset_loaders[phase])
             epoch_acc = float(running_corrects) / len(dset_loaders[phase])
-            print running_loss, running_corrects, len(dset_loaders[phase]), epoch_loss, epoch_acc
 
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc)) 
 
@@ -89,29 +88,42 @@ def train_model(model,dset_loaders, criterion, optimizer, lr_scheduler=None, num
     print('Best val Acc: {:4f}'.format(best_acc))
     return best_model
 
-def main(data_path):
+
+def main(data_path, labels_file):
     batch_size = 1
     LR = 0.0001
-    NUM_EPOCHS = 3
+    NUM_EPOCHS = 30
     WEIGHT_INIT = 1e-3
-    net = Cnn3d(WEIGHT_INIT)
+    # cnn3d model
+    net = models.Cnn3d(WEIGHT_INIT)
+    data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)))
+
+    # alexnet model
+    #net = models.Simple()
+    #data = util.get_data(data_path, labels_file, batch_size,use_3d=False, crop=((30,33), (0,227), (0,227)))
+
+    # net alexnet model
+    net = models.Alex3d()
+    data = util.get_data(data_path, labels_file, batch_size, training_size = 599)
+
     if torch.cuda.is_available():
         net = net.cuda()
-
     criterion = nn.BCELoss()
-    data = util.get_data(data_path, batch_size)
-    optimizer_ft = torch.optim.Adam(net.parameters(), lr=LR)
+    # Lung data is (60, 227 , 227), we want (60, 224, 224)
+    #data = util.get_data(data_path, batch_size, crop=((30, 31), (0,224), (0,224)))
+    optimizer_ft = torch.optim.Adam(net.predict.parameters(), lr=LR)
     model_ft = train_model(net, 
                            data, 
                            criterion,
                            optimizer_ft,
                            num_epochs=NUM_EPOCHS,
-                           verbose=True)
+                           verbose=False)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('DATA_DIR', default='/a/data/lungdl/', help="Path to data directory")
+    parser.add_argument('--DATA_DIR', default='/a/data/lungdl/balanced/', help="Path to data directory")
+    parser.add_argument('--LABELS_FILE', default='/a/data/lungdl/balanced_shuffled_labels.csv', help="Path to data directory")
     r = parser.parse_args()
     if not torch.cuda.is_available():
         print("WARNING: Cuda unavailable")
-    main(r.DATA_DIR)
+    main(r.DATA_DIR, r.LABELS_FILE)
