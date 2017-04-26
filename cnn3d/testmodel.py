@@ -30,16 +30,20 @@ def get_dset_loaders(lungs_dir, labels_file):
     testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=1)
     return { "train" : trainloader, "val" : testloader}
 
-def train_model(model,dset_loaders, criterion, optimizer, lr_scheduler=None, num_epochs=25, verbose = False):
+def train_model(model,dset_loaders, criterion, optimizer, lr_scheduler=None, num_epochs=25, verbose = False,
+    cancer_weight=0.75):
     since = time.time()
 
     best_model = model
     best_acc = 0.0
+    best_loss = 0.0
+    best_trloss = 0.0
+    best_tracc = 0.0
     trainlen = len(dset_loaders['train'])
 
     for epoch in range(num_epochs):
-        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
-        print('-' * 10)
+        # print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+        # print('-' * 10)
 
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
@@ -73,7 +77,7 @@ def train_model(model,dset_loaders, criterion, optimizer, lr_scheduler=None, num
                 #_, preds = torch.max(outputs.data, 1)
                 #print (labels.size())
                 #labels have size (batch, 1,1)?
-                weights = 0.75 * labels.data + 0.25 * (1 - labels.data)
+                weights = cancer_weight * labels.data + (1.0 - cancer_weight) * (1 - labels.data)
                 weights = weights.view(1,1).float()
                 crit = nn.BCELoss(weight=weights)
                 loss = crit(outputs, labels)
@@ -93,20 +97,26 @@ def train_model(model,dset_loaders, criterion, optimizer, lr_scheduler=None, num
             epoch_loss = running_loss / len(dset_loaders[phase])
             epoch_acc = running_corrects / len(dset_loaders[phase])
 
-            print_stats(phase, epoch_loss, epoch_acc)
+            #print_stats(phase, epoch_loss, epoch_acc)
+            if phase == 'train' and epoch_acc > best_tracc:
+                best_tracc = epoch_acc
+                best_trloss = epoch_loss
 
             # deep copy the model
             if phase == 'val' and epoch_acc > best_acc:
                 best_acc = epoch_acc
+                best_loss = epoch_loss
                 best_model = copy.deepcopy(model)
 
-        print()
 
     time_elapsed = time.time() - since
-    print('Training complete in {:.0f}m {:.0f}s'.format(
-        time_elapsed // 60, time_elapsed % 60))
-    print('Best val Acc: {:4f}'.format(best_acc))
-    return best_model
+    # print('Training complete in {:.0f}m {:.0f}s'.format(
+    #     time_elapsed // 60, time_elapsed % 60))
+    #print('Best val Acc: {:4f}'.format(best_acc))
+    stats = 'tr_l: {:.4f}, val_l: {:.4f}, tr_acc: {:.4f}, val_acc: {:.4f}    -    {:.0f}m {:.0f}s'.format(
+        best_trloss, best_loss, best_tracc, best_acc, time_elapsed // 60, time_elapsed % 60)
+    print(stats)
+    return best_model, stats
 
 def print_stats(phase, loss, acc):
     print('{} Loss: {:.4f} Acc: {:.4f}'.format(
@@ -127,24 +137,26 @@ def exp_lr_scheduler(optimizer, epoch, init_lr=0.001, lr_decay_epoch=7):
 ####
 LR = 0.0001
 MOMENTUM = 0.9
-NUM_EPOCHS = 3
+NUM_EPOCHS = 7
 WEIGHT_INIT = 1e-3
 DECAY = None
 def randval(low, high):
-    return (low-high) * np.random.random_sample() + low
+    return (high - low) * np.random.random_sample() + low
 def main():
-    while(True):
-        LR = randval(0.01, 0.00001)
-        WEIGHT_INIT = randval(0.01, 0.00001)
-        print ("LR : {}, weight : {}".format(LR, WEIGHT_INIT))
-        net = Cnn3d(WEIGHT_INIT)
-        if torch.cuda.is_available():
-            net = net.cuda()
-        criterion = nn.BCELoss()
-        dset_loaders = get_dset_loaders(lungs_dir, labels_file)
-        #optimizer_ft = optim.SGD(net.parameters(), lr=LR, momentum=MOMENTUM)
-        optimizer_ft = optim.Adam(net.parameters(), lr=LR)
-        model_ft = train_model(net,dset_loaders, criterion, optimizer_ft, num_epochs=NUM_EPOCHS, verbose=False)
+    print('-' * 10)
+    LR = randval( 0.00001, 0.01,)
+    WEIGHT_INIT = randval(0.00001, 0.01)
+    cancer_weight = randval(0.7, 0.9)
+    MOMENTUM = randval(0.7, 0.95)
+    print ("Es: {}, LR : {}, weight : {}, cancer_weight:, {}".format(NUM_EPOCHS, LR, WEIGHT_INIT, cancer_weight))
+    net = Cnn3d(WEIGHT_INIT)
+    if torch.cuda.is_available():
+        net = net.cuda()
+    criterion = nn.BCELoss()
+    dset_loaders = get_dset_loaders(lungs_dir, labels_file)
+    optimizer_ft = optim.SGD(net.parameters(), lr=LR, momentum=MOMENTUM)
+    #optimizer_ft = optim.Adam(net.parameters(), lr=LR)
+    model_ft, stats = train_model(net,dset_loaders, criterion, optimizer_ft, num_epochs=NUM_EPOCHS, verbose=False, cancer_weight=cancer_weight)
 
 if __name__ == '__main__':
     main()
