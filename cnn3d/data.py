@@ -78,9 +78,9 @@ class LabeledKaggleDataset2D(LabeledKaggleDataset):
         return img3c, target
 
 def get_training_set2D(lungs_dir, labels_file, input_transfoj=None):
-    return LabeledKaggleDataset2D(lungs_dir, labels_file, 0, 100, input_transform)
+    return LabeledKaggleDataset2D(lungs_dir, labels_file, 0, 10, input_transform)
 
 def get_test_set2D(lungs_dir, labels_file, input_transform=None):
-    return LabeledKaggleDataset2D(lungs_dir, labels_file, 100, 120, input_transform)
+    return LabeledKaggleDataset2D(lungs_dir, labels_file, 100, 101, input_transform)
 
 

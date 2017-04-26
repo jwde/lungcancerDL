@@ -137,7 +137,7 @@ def exp_lr_scheduler(optimizer, epoch, init_lr=0.001, lr_decay_epoch=7):
 ####
 LR = 0.0001
 MOMENTUM = 0.9
-NUM_EPOCHS = 7
+NUM_EPOCHS = 8
 WEIGHT_INIT = 1e-3
 DECAY = None
 def randval(low, high):
