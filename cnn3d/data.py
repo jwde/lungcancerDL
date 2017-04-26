@@ -42,17 +42,17 @@ class LabeledKaggleDataset(data.Dataset):
 
         img = img.view(1,60, 227, 227)
         img = img[:,:,:224,:224]
-        return img, target
+        return img, target, f
 
     def __len__(self):
         return len(self.lung_names)
             
 
 def get_training_set(lungs_dir, labels_file):
-    return LabeledKaggleDataset(lungs_dir, labels_file, 0, 50)
+    return LabeledKaggleDataset(lungs_dir, labels_file, 0, 1000)
 
 def get_test_set(lungs_dir, labels_file):
-    return LabeledKaggleDataset(lungs_dir, labels_file, 50, 60)
+    return LabeledKaggleDataset(lungs_dir, labels_file, 1000, 1397)
 
 class LabeledKaggleDataset2D(LabeledKaggleDataset):
     def __init__(self, image_dir, labels_path, slice_start, slice_end, input_transform=None, target_transform=None):
