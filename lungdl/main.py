@@ -95,8 +95,8 @@ def main(data_path, labels_file):
     NUM_EPOCHS = 30
     WEIGHT_INIT = 1e-3
     # cnn3d model
-    net = models.Cnn3d(WEIGHT_INIT)
-    data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)))
+    # net = models.Cnn3d(WEIGHT_INIT)
+    # data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)))
 
     # alexnet model
     #net = models.Simple()
