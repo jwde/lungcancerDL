@@ -89,29 +89,32 @@ def train_model(model,dset_loaders, criterion, optimizer, lr_scheduler=None, num
     return best_model
 
 
-def main(data_path, labels_file):
+def main(data_path, labels_file, train_net='current'):
     batch_size = 1
     LR = 0.0001
     NUM_EPOCHS = 30
-    WEIGHT_INIT = 1e-3
-    # cnn3d model
-    # net = models.Cnn3d(WEIGHT_INIT)
-    # data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)))
+    WEIGHT_INIT = None
 
-    # alexnet model
-    #net = models.Simple()
-    #data = util.get_data(data_path, labels_file, batch_size,use_3d=False, crop=((30,33), (0,227), (0,227)))
-
-    # net alexnet model
-    net = models.Alex3d()
-    data = util.get_data(data_path, labels_file, batch_size, training_size = 599)
+    if train_net == '3d':
+        # cnn3d model
+        net = models.Cnn3d(WEIGHT_INIT)
+        data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=20)
+        optimizer_ft = torch.optim.Adam(net.parameters(), lr=LR)
+    elif train_net == 'simple':
+        # alexnet model
+        net = models.Simple()
+        data = util.get_data(data_path, labels_file, batch_size,use_3d=False, crop=((30,33), (0,227), (0,227)))
+    elif train_net == 'alex3d':
+        # net alexnet model
+        net = models.Alex3d()
+        data = util.get_data(data_path, labels_file, batch_size, training_size = 20)
+        optimizer_ft = torch.optim.Adam(net.predict.parameters(), lr=LR)
 
     if torch.cuda.is_available():
         net = net.cuda()
     criterion = nn.BCELoss()
     # Lung data is (60, 227 , 227), we want (60, 224, 224)
     #data = util.get_data(data_path, batch_size, crop=((30, 31), (0,224), (0,224)))
-    optimizer_ft = torch.optim.Adam(net.predict.parameters(), lr=LR)
     model_ft = train_model(net, 
                            data, 
                            criterion,
@@ -123,7 +126,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--DATA_DIR', default='/a/data/lungdl/balanced/', help="Path to data directory")
     parser.add_argument('--LABELS_FILE', default='/a/data/lungdl/balanced_shuffled_labels.csv', help="Path to data directory")
+    parser.add_argument('--NET', default='alex3d', help="One of: alex3d, 3d, simple")
     r = parser.parse_args()
     if not torch.cuda.is_available():
         print("WARNING: Cuda unavailable")
-    main(r.DATA_DIR, r.LABELS_FILE)
+    main(r.DATA_DIR, r.LABELS_FILE, r.NET)
