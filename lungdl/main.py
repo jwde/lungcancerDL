@@ -110,7 +110,7 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
 
 
 def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d'):
-    batch_size = 4
+    batch_size = 2
     LR = 0.0001
     NUM_EPOCHS = 1
     WEIGHT_INIT = None
@@ -127,7 +127,7 @@ def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d
         from vgg3d import get_pretrained_2D_layers
         net = get_pretrained_2D_layers()
         data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=20)
-        optimizer_ft = torch.optim.Adam(net.parameters(), lr=LR, weight_decay=0.1)
+        optimizer_ft = torch.optim.Adam(net.trainable.parameters(), lr=LR, weight_decay=0.1)
 
     elif train_net == 'simple':
         # alexnet model

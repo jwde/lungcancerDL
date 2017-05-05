@@ -17,7 +17,7 @@ class Vgg3d(nn.Module):
             nn.Conv3d(64, 64, kernel_size=(1,3,3), stride=(1,1,1), padding=(0,1,1)),
             nn.ReLU(inplace=True),
             nn.MaxPool3d(kernel_size=(1,2,2), stride=(1,2,2), padding=(0,0,0)),
-            nn.Conv3d(128 , 128, kernel_size=(1,3,3), stride=(1,1,1), padding=(0,1,1)),
+            nn.Conv3d(64 , 128, kernel_size=(1,3,3), stride=(1,1,1), padding=(0,1,1)),
             nn.ReLU(inplace=True),
             nn.Conv3d(128 , 128, kernel_size=(1,3,3), stride=(1,1,1), padding=(0,1,1)),
             nn.ReLU(inplace=True),
@@ -61,7 +61,7 @@ class Vgg3d(nn.Module):
             #nn.Conv3d(128, 1, kernel_size=7, stride=1, padding=0),
         )
         self.probs = nn.Sigmoid()
-
+        self.trainable = nn.Sequential(self.features, self.scores, self.probs)
         for m in self.modules():
             if isinstance(m, nn.Conv3d):
                 #Xavier initialization
@@ -84,12 +84,12 @@ class Vgg3d(nn.Module):
         return pred
 def BGR_to_Grayscale(w, b, mean):
     new_w = torch.sum(w, 1)
-    new_b = torch.sum(b)
+    new_b = b
     w0 = w[:, 0, :, :] * mean[0]
     w1 = w[:, 1, :, :] * mean[1]
     w2 = w[:, 2, :, :] * mean[2]
     w_t = w0 + w1 + w2
-    new_b -= torch.sum(w_t)
+    new_b -= torch.sum(torch.sum(w_t, 1), 2)
     return new_w, new_b
 
 def to_3D(w):
@@ -113,25 +113,29 @@ def get_pretrained_2D_layers():
     cnn3d = Vgg3d()
     modules = next(cnn3d.vggfeats.modules())
     modules[0].weight.data = w0
-    modules[0].bias.data = torch.FloatTensor([b0])
+    modules[0].bias.data = b0
     modules[2].weight.data = w1
     modules[2].bias.data = b1
     modules[5].weight.data = w2
     modules[5].bias.data = b2
     modules[7].weight.data = w3
     modules[7].bias.data = b3
-    #for p in cnn3d.vggfeats.parameters():
-    #    p.requires_grad = False
+    for p in cnn3d.vggfeats.parameters():
+        p.requires_grad = False
     return cnn3d
 
 def main():
-    cnn3d = get_mutant()
+    cnn3d = get_pretrained_2D_layers()
     for m in cnn3d.modules():
         if isinstance(m, nn.Conv3d):
             print (m.weight.size())
             print (m.bias.size())
-    for p in cnn3d.parameters():
-        print (p.requires_grad)
+
+    print("VGG")
+    for m in Vgg3d().modules():
+        if isinstance(m, nn.Conv3d):
+            print (m.weight.size())
+            print (m.bias.size())
 
 if __name__ == '__main__':
     main()
