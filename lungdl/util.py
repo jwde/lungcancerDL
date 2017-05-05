@@ -8,6 +8,7 @@ import torch
 import torch.utils.data as data
 import csv
 import numpy as np
+import multiprocessing
 from itertools import islice
 
 def hu_to_visual_features(img, low, high):
@@ -103,9 +104,10 @@ class LabeledKaggleRamDataset(data.Dataset):
 def get_data(lungs_dir, labels_file, batch_size, use_3d = True, crop = None, training_size = 600):
     trainset = LabeledKaggleDataset(lungs_dir, labels_file, None, training_size, use_3d = use_3d, crop = crop)
     testset = LabeledKaggleDataset(lungs_dir, labels_file,training_size, None, use_3d = use_3d, crop = crop)
+    num_cores = multiprocessing.cpu_count()
     # Parallel loader breaks on the aws machine python2
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=8)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=8)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=num_cores)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=num_cores)
     return { "train" : trainloader, "val" : testloader}
 
 def rand_interval(low, high):

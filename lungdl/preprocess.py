@@ -201,7 +201,7 @@ def segment_lung_mask1(image, fill_lung_structures=True):
     return binary_image
 #======================= Preprocess Images ==========================#
 
-def main_loop(INPUT_FOLDER,OUT_FOLDER,patients,i):
+def main_loop(INPUT_FOLDER,OUT_FOLDER,patients,i,trim):
     patient = patients[i]
     npat = len(patients)
     patientINFO = load_scan(INPUT_FOLDER + patient)
@@ -216,7 +216,8 @@ def main_loop(INPUT_FOLDER,OUT_FOLDER,patients,i):
     masked_image = patient_pixels
     masked_image[dilated_mask==0] = -10000 # mask the image by logical indexing
     # trim excess around ROI
-    trimmed_pixels = trim_excess(dilated_mask, masked_image)
+    trimmed_pixels = trim_excess(dilated_mask, masked_image) if trim else masked_image
+
     # 2-stage resampling (equal spacing, lower resolution)
     pix_resampled = resample(trimmed_pixels, patientINFO,[2,2,2], [60,227,227])
     
@@ -227,6 +228,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT_FOLDER', help="Path to input data directory")
     parser.add_argument('OUT_FOLDER', help="Path to output data directory")
+    parser.add_argument('--trim', '-t', action=store_true, default=False help="attempt to trim black border around lung")
     r = parser.parse_args()
     if not os.path.exists(r.OUT_FOLDER):
         os.makedirs(r.OUT_FOLDER)
@@ -234,5 +236,5 @@ if __name__ == "__main__":
 
     print ("There are " + str(len(dicoms)) + " dicom files to process.")
     print ("Running " + str(num_cores) + " ways parallel.")
-    Parallel(n_jobs=num_cores)(delayed(main_loop)(r.INPUT_FOLDER,r.OUT_FOLDER,dicoms,i) for i in range(len(dicoms)))
+    Parallel(n_jobs=num_cores)(delayed(main_loop)(r.INPUT_FOLDER,r.OUT_FOLDER,dicoms,i, r.trim) for i in range(len(dicoms)))
 

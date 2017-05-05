@@ -130,9 +130,8 @@ def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d
         # net alexnet model
         batch_size = 1 #everything is hard coded... whoops
         net = models.Alex3d()
-        data = util.get_data(data_path, labels_file, batch_size, training_size = 1200)
-        optimizer_ft = torch.optim.Adam(net.predict.parameters(), lr=LR, weight_decay=.001)
-
+        data = util.get_data(data_path, labels_file, batch_size, training_size = 500)
+        optimizer_ft = torch.optim.Adam(net.predict.parameters(), lr=LR)
     if torch.cuda.is_available():
         net = net.cuda()
     criterion = nn.BCELoss()
