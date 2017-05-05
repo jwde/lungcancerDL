@@ -60,9 +60,11 @@ class LabeledKaggleDataset(data.Dataset):
         img = load_img(self.image_dir + f)
         img = hu_to_visual_features(img, -1500, 500)
         # Uncommented on Jason Branch - I dont have the pre thresholding data
-        img = torch.from_numpy(img).float()
+        #img = torch.from_numpy(img).float()
+        print (img.max(), img.min())
         target = torch.FloatTensor(1)
         target[0] = self.lung_labels[index]
+        print(type(img), img.size)
         if self.input_transform:
             img = self.input_transform(img)
         if self.target_transform:
@@ -101,9 +103,15 @@ class LabeledKaggleRamDataset(data.Dataset):
     def __getitem__(self, index):
         return self.images[index], self.targets[index]
 
-def get_data(lungs_dir, labels_file, batch_size, use_3d = True, crop = None, training_size = 600):
-    trainset = LabeledKaggleDataset(lungs_dir, labels_file, None, training_size, use_3d = use_3d, crop = crop)
-    testset = LabeledKaggleDataset(lungs_dir, labels_file,training_size, None, use_3d = use_3d, crop = crop)
+def get_data(lungs_dir, labels_file, batch_size, use_3d = True, crop = None, training_size = 600, augment_data = True):
+    if augment_data:
+        transform = tt.Compose([transforms.RandomShift((10,50, 50)),
+                                transforms.RandomHorizontalFlip(),
+                                transforms.ToTensor()])
+    else:
+        transform = transforms.ToTensor()
+    trainset = LabeledKaggleDataset(lungs_dir, labels_file, None, training_size, use_3d = use_3d, crop = crop, input_transform = transform)
+    testset = LabeledKaggleDataset(lungs_dir, labels_file,training_size, None, use_3d = use_3d, crop = crop, input_transform = transform)
     num_cores = multiprocessing.cpu_count()
     # Parallel loader breaks on the aws machine python2
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=num_cores)

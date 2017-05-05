@@ -3,6 +3,8 @@ import pandas as pd
 #import dicom
 import os
 import scipy.ndimage
+import matplotlib
+#matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import argparse
 
@@ -49,9 +51,10 @@ def numpy_plot_rand(input_dir):
     plt.imshow(lung[30,:,:], cmap=plt.cm.gray)
     plt.show()
 
-def plot(img_path):
-    lung = np.load(path)
-    plt.imshow(lung[30,:,:], cmap=plt.cm.gray)
+def plot(lung):
+    if type(lung) is not np.ndarray:
+        lung = lung.numpy()
+    plt.imshow(lung[0,30,:,:], cmap=plt.cm.gray)
     plt.show()
 
 if __name__ == "__main__":
