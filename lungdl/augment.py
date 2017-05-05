@@ -20,11 +20,9 @@ def main(args):
     since = time.time()
     data = util.LabeledKaggleDataset(args.INPUT_FOLDER, args.LABELS_FILE)
     img, t = data.__getitem__(0)
-    print(img[0,0,:,:].encode('utf-8'))
-            
+    explore.plot(img)
     time_elapsed = time.time() - since
     print("Done, time_elapsed =", time_elapsed)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
