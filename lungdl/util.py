@@ -36,7 +36,7 @@ def load_img(path):
     return np.load(path)
 
 class LabeledKaggleDataset(data.Dataset):
-    def __init__(self, image_dir, labels_path, slice_start, slice_end, use_3d, crop = None,
+    def __init__(self, image_dir, labels_path, slice_start = None, slice_end = None, use_3d = True, crop = None,
                  input_transform=None, target_transform=None):
         super(LabeledKaggleDataset, self).__init__()
         self.image_dir = image_dir
@@ -48,7 +48,9 @@ class LabeledKaggleDataset(data.Dataset):
         self.use_3d = use_3d
         with open(labels_path) as csv_labels:
             labels_reader = csv.reader(csv_labels)
-            for row in islice(labels_reader, 1 + slice_start, 1 + slice_end):
+            next(labels_reader) # skip header
+            for row in islice(labels_reader, slice_start, slice_end):
+            #for row in islice(labels_reader, 1 + slice_start, 1 + slice_end):
                 self.lung_names += [row[0]]
                 self.lung_labels += [int(row[1])]
 
@@ -80,13 +82,11 @@ class LabeledKaggleDataset(data.Dataset):
         return len(self.lung_names)
 
 def get_data(lungs_dir, labels_file, batch_size, use_3d = True, crop = None, training_size = 600):
-    trainset = LabeledKaggleDataset(lungs_dir, labels_file, 0, training_size, use_3d, crop = crop)
-    test_end = training_size * 1.1 
-    test_end = min(int(test_end), 644)
-    testset = LabeledKaggleDataset(lungs_dir, labels_file,training_size, test_end, use_3d, crop = crop)
+    trainset = LabeledKaggleDataset(lungs_dir, labels_file, None, training_size, use_3d = use_3d, crop = crop)
+    testset = LabeledKaggleDataset(lungs_dir, labels_file,training_size, None, use_3d = use_3d, crop = crop)
     # Parallel loader breaks on the aws machine python2
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)#, num_workers=1)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False)#, num_workers=1)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=8)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=8)
     return { "train" : trainloader, "val" : testloader}
 
 def rand_interval(low, high):
