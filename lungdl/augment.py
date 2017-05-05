@@ -6,10 +6,12 @@ import time
 def main(args):
     if not os.path.exists(args.OUT_FOLDER):
         os.makedirs(args.OUT_FOLDER)
-    data = util.LabeledKaggleDataset(args.INPUT_FOLDER, args.LABELS_FILE)
     since = time.time()
-    for i,(img,target) in enumerate(data):
-        #print (i, target)
+    #data = util.LabeledKaggleDataset(args.INPUT_FOLDER, args.LABELS_FILE)
+    data = util.get_data(args.INPUT_FOLDER, args.LABELS_FILE, 1)
+    for t in data["train"]:
+        pass
+    for t in data["val"]:
         pass
     time_elapsed = time.time() - since
     print("Done, time_elapsed =", time_elapsed)
