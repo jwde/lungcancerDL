@@ -2,17 +2,26 @@ import util
 import argparse
 import os
 import time
+import explore
+
+def test_load_time(args):
+    since = time.time()
+    data = util.get_data(args.INPUT_FOLDER, args.LABELS_FILE, 10)
+    for i,t in enumerate(data["train"]):
+        pass
+    for i,t in enumerate(data["train"]):
+        pass
+    time_elapsed = time.time() - since
+    print("Done, time_elapsed =", time_elapsed)
 
 def main(args):
     if not os.path.exists(args.OUT_FOLDER):
         os.makedirs(args.OUT_FOLDER)
     since = time.time()
-    #data = util.LabeledKaggleDataset(args.INPUT_FOLDER, args.LABELS_FILE)
-    data = util.get_data(args.INPUT_FOLDER, args.LABELS_FILE, 1)
-    for t in data["train"]:
-        pass
-    for t in data["val"]:
-        pass
+    data = util.LabeledKaggleDataset(args.INPUT_FOLDER, args.LABELS_FILE)
+    img, t = data.__getitem__(0)
+    print(img[0,0,:,:].encode('utf-8'))
+            
     time_elapsed = time.time() - since
     print("Done, time_elapsed =", time_elapsed)
 
