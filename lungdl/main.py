@@ -10,7 +10,7 @@ import argparse
 import models
 import util
 
-def train_model(model,dset_loaders, criterion, optimizer, lr_scheduler=None, num_epochs=25, verbose = False):
+def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_scheduler=None, num_epochs=25, verbose = False):
     since = time.time()
 
     best_model = model
@@ -53,9 +53,10 @@ def train_model(model,dset_loaders, criterion, optimizer, lr_scheduler=None, num
                 #_, preds = torch.max(outputs.data, 1)
                 #print (labels.size())
                 #labels have size (batch, 1,1)?
-                weights = 0.75 * labels.data + 0.25 * (1 - labels.data)
-                weights = weights.view(1,1).float()
-                crit = nn.BCELoss(weight=weights)
+                #weights = 0.75 * labels.data + 0.25 * (1 - labels.data)
+                #weights = weights.view(1,1).float()
+                #crit = nn.BCELoss(weight=weights)
+                crit = nn.BCELoss()
                 loss = crit(outputs, labels)
 
                 # backward + optimize only if in training phase
@@ -70,8 +71,9 @@ def train_model(model,dset_loaders, criterion, optimizer, lr_scheduler=None, num
                     print ("tr loss: {}".format(running_loss / (i + 1)))
 
 
-            epoch_loss = running_loss / len(dset_loaders[phase])
-            epoch_acc = float(running_corrects) / len(dset_loaders[phase])
+            # Note: BCE loss already divides by batchsize
+            epoch_loss = running_loss / (len(dset_loaders[phase]))
+            epoch_acc = float(running_corrects) / (len(dset_loaders[phase]) * batch_size)
 
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc)) 
 
@@ -89,16 +91,20 @@ def train_model(model,dset_loaders, criterion, optimizer, lr_scheduler=None, num
     return best_model
 
 
-def main(data_path, labels_file, train_net='current'):
-    batch_size = 1
+def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d'):
+    batch_size = 4
     LR = 0.0001
-    NUM_EPOCHS = 30
+    NUM_EPOCHS = 3
     WEIGHT_INIT = None
+    optimizer_ft = None
+    net = None
 
     if train_net == '3d':
         # cnn3d model
         net = models.Cnn3d(WEIGHT_INIT)
-        data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=20)
+        if load_name != None:
+            net.load_state_dict(torch.load(models_dir+load_name))
+        data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=500)
         optimizer_ft = torch.optim.Adam(net.parameters(), lr=LR)
     elif train_net == 'simple':
         # alexnet model
@@ -106,6 +112,7 @@ def main(data_path, labels_file, train_net='current'):
         data = util.get_data(data_path, labels_file, batch_size,use_3d=False, crop=((30,33), (0,227), (0,227)))
     elif train_net == 'alex3d':
         # net alexnet model
+        batch_size = 1 #everything is hard coded... whoops
         net = models.Alex3d()
         data = util.get_data(data_path, labels_file, batch_size, training_size = 20)
         optimizer_ft = torch.optim.Adam(net.predict.parameters(), lr=LR)
@@ -119,15 +126,23 @@ def main(data_path, labels_file, train_net='current'):
                            data, 
                            criterion,
                            optimizer_ft,
+                           batch_size,
                            num_epochs=NUM_EPOCHS,
                            verbose=False)
+    print "Saving net to disk at - {}".format(models_dir+save_name)
+    torch.save(net.state_dict(), models_dir+save_name)
+    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--DATA_DIR', default='/a/data/lungdl/balanced/', help="Path to data directory")
     parser.add_argument('--LABELS_FILE', default='/a/data/lungdl/balanced_shuffled_labels.csv', help="Path to data directory")
     parser.add_argument('--NET', default='alex3d', help="One of: alex3d, 3d, simple")
+    parser.add_argument('--MODELS_DIR', default='/a/data/lungdl/models/', help='Path to model directory')
+    parser.add_argument('--SAVE_NAME', default='tmp.model', help='Name of save model')
+    parser.add_argument('--LOAD_MODEL', default=None, help='Load pretrained model')
+    
     r = parser.parse_args()
     if not torch.cuda.is_available():
         print("WARNING: Cuda unavailable")
-    main(r.DATA_DIR, r.LABELS_FILE, r.NET)
+    main(r.DATA_DIR, r.LABELS_FILE, r.MODELS_DIR, r.SAVE_NAME, r.LOAD_MODEL, r.NET)

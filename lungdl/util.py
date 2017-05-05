@@ -67,7 +67,7 @@ class LabeledKaggleDataset(data.Dataset):
         if self.target_transform:
             target = self.target_transform(target)
 
-        img = img.view(1,60, 227, 227)
+        img = img.view(-1,60, 227, 227)
         crop = self.crop
         if crop:
             img = img[:, crop[0][0]:crop[0][1], crop[1][0]:crop[1][1], crop[2][0]:crop[2][1]]
