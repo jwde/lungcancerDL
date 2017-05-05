@@ -53,9 +53,10 @@ def train_model(model,dset_loaders, criterion, optimizer, lr_scheduler=None, num
                 #_, preds = torch.max(outputs.data, 1)
                 #print (labels.size())
                 #labels have size (batch, 1,1)?
-                weights = 0.75 * labels.data + 0.25 * (1 - labels.data)
-                weights = weights.view(1,1).float()
-                crit = nn.BCELoss(weight=weights)
+                #weights = 0.75 * labels.data + 0.25 * (1 - labels.data)
+                #weights = weights.view(1,1).float()
+                #crit = nn.BCELoss(weight=weights)
+                crit = nn.BCELoss()
                 loss = crit(outputs, labels)
 
                 # backward + optimize only if in training phase
@@ -92,8 +93,10 @@ def train_model(model,dset_loaders, criterion, optimizer, lr_scheduler=None, num
 def main(data_path, labels_file, train_net='current'):
     batch_size = 1
     LR = 0.0001
-    NUM_EPOCHS = 30
+    NUM_EPOCHS = 40
     WEIGHT_INIT = None
+    optimizer_ft = None
+    net = None
 
     if train_net == '3d':
         # cnn3d model
@@ -121,12 +124,16 @@ def main(data_path, labels_file, train_net='current'):
                            optimizer_ft,
                            num_epochs=NUM_EPOCHS,
                            verbose=False)
+    print "Saving net to disk at - net_tmp.model"
+    torch.save(net.state_dict(), "./net_tmp.model")
+    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--DATA_DIR', default='/a/data/lungdl/balanced/', help="Path to data directory")
     parser.add_argument('--LABELS_FILE', default='/a/data/lungdl/balanced_shuffled_labels.csv', help="Path to data directory")
     parser.add_argument('--NET', default='alex3d', help="One of: alex3d, 3d, simple")
+    
     r = parser.parse_args()
     if not torch.cuda.is_available():
         print("WARNING: Cuda unavailable")
