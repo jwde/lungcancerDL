@@ -3,6 +3,16 @@ import argparse
 import os
 import time
 import explore
+import scipy
+import numpy as np
+import torchvision.transforms as tt
+import transforms
+
+
+def flip_lr(img):
+    transform = tt.Scale(2)
+    print (img.numpy().shape)
+    return transform
 
 def test_load_time(args):
     since = time.time()
@@ -18,9 +28,20 @@ def main(args):
     if not os.path.exists(args.OUT_FOLDER):
         os.makedirs(args.OUT_FOLDER)
     since = time.time()
-    data = util.LabeledKaggleDataset(args.INPUT_FOLDER, args.LABELS_FILE)
+
+    transform = tt.Compose([transforms.RandomShift((10,50, 50)),
+                            transforms.RandomHorizontalFlip(),
+                            transforms.ToTensor()])
+    data = util.LabeledKaggleDataset(args.INPUT_FOLDER, args.LABELS_FILE,
+                input_transform = transform)
+    
+#    for i,(img,t) in enumerate(data):
     img, t = data.__getitem__(0)
+    img = img.numpy()
+    print (img.shape)
     explore.plot(img)
+    #img_new = horizontal_shift(img)
+    #explore.plot(img_new)
     time_elapsed = time.time() - since
     print("Done, time_elapsed =", time_elapsed)
 
