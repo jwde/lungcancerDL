@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import scipy
+import scipy.ndimage as ndimage
 import random
 
 class ToTensor(object):
@@ -16,7 +17,7 @@ class Shift(object):
     def __call__(self, img):
         if not isinstance(img, np.ndarray):
             print ("Calling To Tensor on Non numpy array")
-        return scipy.ndimage.shift(img, self.shift)
+        return ndimage.shift(img, self.shift)
 
 class Flip(object):
     """Given C x H x W numpy, flips"""
@@ -41,8 +42,8 @@ class RandomShift(object):
 
     def __call__(self, img):
         shift = self.max_shift * np.random.uniform(-1,1,3) # 3 dims C,H,W
-        print (shift)
-        return scipy.ndimage.shift(img, shift)
+        #print (shift)
+        return ndimage.shift(img, shift)
 
 
 
