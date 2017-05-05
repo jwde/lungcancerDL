@@ -10,6 +10,8 @@ import csv
 import numpy as np
 import multiprocessing
 from itertools import islice
+import torchvision.transforms as tt
+import transforms
 
 def hu_to_visual_features(img, low, high):
     """
@@ -61,10 +63,8 @@ class LabeledKaggleDataset(data.Dataset):
         img = hu_to_visual_features(img, -1500, 500)
         # Uncommented on Jason Branch - I dont have the pre thresholding data
         #img = torch.from_numpy(img).float()
-        print (img.max(), img.min())
         target = torch.FloatTensor(1)
         target[0] = self.lung_labels[index]
-        print(type(img), img.size)
         if self.input_transform:
             img = self.input_transform(img)
         if self.target_transform:
