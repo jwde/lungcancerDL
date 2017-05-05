@@ -99,6 +99,10 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
             flat_weights = np.concatenate(flat_weights)
             plt.hist(flat_weights, 50)
             plt.savefig('../models/weights_hist_{}'.format(epoch))
+
+            time_elapsed = time.time() - since
+            print('Time spent so far: {:.0f}m {:.0f}s'.format(
+                time_elapsed // 60, time_elapsed % 60))
     except KeyboardInterrupt:
         pass
 
@@ -110,24 +114,24 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
 
 
 def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d'):
-    batch_size = 2
+    batch_size = 1
     LR = 0.0001
-    NUM_EPOCHS = 1
+    NUM_EPOCHS = 20
     WEIGHT_INIT = None
     optimizer_ft = None
     net = None
-
+    training_size = 500
     if train_net == '3d':
         # cnn3d model
         net = models.Cnn3d(WEIGHT_INIT)
-        data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=500)
+        data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=training_size)
         optimizer_ft = torch.optim.Adam(net.parameters(), lr=LR, weight_decay=0.1)
 
     elif train_net == 'vgg3d':
         from vgg3d import get_pretrained_2D_layers
         net = get_pretrained_2D_layers()
-        data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=20)
-        optimizer_ft = torch.optim.Adam(net.trainable.parameters(), lr=LR, weight_decay=0.1)
+        data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=training_size)
+        optimizer_ft = torch.optim.Adam(net.trainable.parameters(), lr=LR, weight_decay=0.001)
 
     elif train_net == 'simple':
         # alexnet model
@@ -137,9 +141,10 @@ def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d
     elif train_net == 'alex3d':
         # net alexnet model
         batch_size = 1 #everything is hard coded... whoops
-        net = models.Alex3d()
-        data = util.get_data(data_path, labels_file, batch_size, training_size = 500)
-        optimizer_ft = torch.optim.Adam(net.predict.parameters(), lr=LR)
+        net = models.Alex3d(freeze_alex = False)
+        data = util.get_data(data_path, labels_file, batch_size, training_size = training_size)
+        #optimizer_ft = torch.optim.Adam(net.predict.parameters(), lr=LR)
+        optimizer_ft = torch.optim.Adam(net.parameters(), lr=LR)
     if torch.cuda.is_available():
         net = net.cuda()
     criterion = nn.BCELoss()

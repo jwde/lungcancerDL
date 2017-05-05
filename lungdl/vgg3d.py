@@ -20,12 +20,12 @@ class Vgg3d(nn.Module):
             nn.Conv3d(64 , 128, kernel_size=(1,3,3), stride=(1,1,1), padding=(0,1,1)),
             nn.ReLU(inplace=True),
             nn.Conv3d(128 , 128, kernel_size=(1,3,3), stride=(1,1,1), padding=(0,1,1)),
-            nn.ReLU(inplace=True),
-            nn.MaxPool3d(kernel_size=(1,2,2), stride=(1,2,2), padding=(0,0,0)),
             )
         
         self.features = nn.Sequential(
                        #Now volumes are cubic... we can use actual 3d convs:w
+            nn.MaxPool3d(kernel_size=(1,2,2), stride=(1,2,2), padding=(0,0,0)),
+            nn.BatchNorm3d(128),
             nn.Conv3d(128, 32, kernel_size=(3,3,3), stride=(1,1,1), padding=(1,1,1)),
             nn.BatchNorm3d(32),
             nn.ReLU(inplace=True),
