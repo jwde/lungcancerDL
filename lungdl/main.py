@@ -5,6 +5,7 @@ import numpy as np
 import time
 import copy
 import argparse
+import os
 
 # Within package
 import models
@@ -16,6 +17,8 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
     best_model = model
     best_acc = 0.0
     trainlen = len(dset_loaders['train'])
+    train_loss_history = []
+    validation_loss_history = []
 
     for epoch in range(num_epochs):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
@@ -58,6 +61,10 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
                 #crit = nn.BCELoss(weight=weights)
                 crit = nn.BCELoss()
                 loss = crit(outputs, labels)
+                if phase == 'train':
+                    train_loss_history += [loss.data.cpu()]
+                else:
+                    validation_loss_history += [loss.data.cpu()]
 
                 # backward + optimize only if in training phase
                 if phase == 'train':
@@ -88,13 +95,13 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
     print('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
     print('Best val Acc: {:4f}'.format(best_acc))
-    return best_model
+    return best_model, train_loss_history, validation_loss_history
 
 
 def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d'):
-    batch_size = 4
+    batch_size = 3
     LR = 0.0001
-    NUM_EPOCHS = 3
+    NUM_EPOCHS = 20
     WEIGHT_INIT = None
     optimizer_ft = None
     net = None
@@ -102,10 +109,8 @@ def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d
     if train_net == '3d':
         # cnn3d model
         net = models.Cnn3d(WEIGHT_INIT)
-        if load_name != None:
-            net.load_state_dict(torch.load(models_dir+load_name))
         data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=500)
-        optimizer_ft = torch.optim.Adam(net.parameters(), lr=LR)
+        optimizer_ft = torch.optim.Adam(net.parameters(), lr=LR, weight_decay=0.1)
     elif train_net == 'simple':
         # alexnet model
         net = models.Simple()
@@ -122,15 +127,20 @@ def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d
     criterion = nn.BCELoss()
     # Lung data is (60, 227 , 227), we want (60, 224, 224)
     #data = util.get_data(data_path, batch_size, crop=((30, 31), (0,224), (0,224)))
-    model_ft = train_model(net, 
-                           data, 
-                           criterion,
-                           optimizer_ft,
-                           batch_size,
-                           num_epochs=NUM_EPOCHS,
-                           verbose=False)
-    print "Saving net to disk at - {}".format(models_dir+save_name)
-    torch.save(net.state_dict(), models_dir+save_name)
+    if load_name != None:
+        net.load_state_dict(torch.load(models_dir+load_name))
+      
+    model_ft, train_loss, validation_loss = train_model(net, 
+                                            data, 
+                                            criterion,
+                                            optimizer_ft,
+                                            batch_size,
+                                            num_epochs=NUM_EPOCHS,
+                                            verbose=False)
+    print("Saving net to disk at - {}".format(models_dir+save_name))
+    torch.save(net.state_dict(), os.path.join(models_dir,save_name))
+    torch.save(train_loss, os.path.join(models_dir,save_name + '_train_loss'))
+    torch.save(validation_loss, os.path.join(models_dir,save_name + '_validation_loss'))
     
 
 if __name__ == '__main__':

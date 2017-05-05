@@ -82,10 +82,29 @@ class LabeledKaggleDataset(data.Dataset):
     def __len__(self):
         return len(self.lung_names)
 
+class LabeledKaggleRamDataset(data.Dataset):
+    def __init__(self, image_dir, labels_path, slice_start = None, slice_end = None, use_3d = True, crop = None,
+                 input_transform=None, target_transform=None):
+        super(LabeledKaggleRamDataset, self).__init__()
+        self.slow_dataset = LabeledKaggleDataset(image_dir, labels_path, slice_start, slice_end, use_3d, crop,
+                 input_transform, target_transform)
+        self.images = []
+        self.targets = []
+        for i in range(len(self.slow_dataset)):
+            img, target = self.slow_dataset[i]
+            self.images += [img]
+            self.targets += [target]
+
+    def __len__(self):
+        return len(self.slow_dataset)
+
+    def __getitem__(self, index):
+        return self.images[index], self.targets[index]
+
 def get_data(lungs_dir, labels_file, batch_size, use_3d = True, crop = None, training_size = 600):
     num_cores = multiprocessing.cpu_count()
-    trainset = LabeledKaggleDataset(lungs_dir, labels_file, None, training_size, use_3d = use_3d, crop = crop)
-    testset = LabeledKaggleDataset(lungs_dir, labels_file,training_size, None, use_3d = use_3d, crop = crop)
+    trainset = LabeledKaggleRamDataset(lungs_dir, labels_file, None, training_size, use_3d = use_3d, crop = crop)
+    testset = LabeledKaggleRamDataset(lungs_dir, labels_file,training_size, None, use_3d = use_3d, crop = crop)
     # Parallel loader breaks on the aws machine python2
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=num_cores)
     testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=num_cores)
