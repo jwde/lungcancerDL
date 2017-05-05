@@ -22,7 +22,7 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
         print('-' * 10)
 
         # Each epoch has a training and validation phase
-        for phase in ['train', 'val']:
+        for phase in ['train']: #, 'val']:
             if phase == 'train':
                 if lr_scheduler is not None:
                     optimizer = lr_scheduler(optimizer, epoch)
@@ -78,7 +78,7 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc)) 
 
             # deep copy the model
-            if phase == 'val' and epoch_acc > best_acc:
+            if phase == 'train' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model = copy.deepcopy(model)
 
@@ -93,8 +93,8 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
 
 def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d'):
     batch_size = 4
-    LR = 0.0001
-    NUM_EPOCHS = 3
+    LR = 0.00001
+    NUM_EPOCHS = 20
     WEIGHT_INIT = None
     optimizer_ft = None
     net = None
@@ -102,8 +102,6 @@ def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d
     if train_net == '3d':
         # cnn3d model
         net = models.Cnn3d(WEIGHT_INIT)
-        if load_name != None:
-            net.load_state_dict(torch.load(models_dir+load_name))
         data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=500)
         optimizer_ft = torch.optim.Adam(net.parameters(), lr=LR)
     elif train_net == 'simple':
@@ -114,8 +112,10 @@ def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d
         # net alexnet model
         batch_size = 1 #everything is hard coded... whoops
         net = models.Alex3d()
-        data = util.get_data(data_path, labels_file, batch_size, training_size = 20)
+        data = util.get_data(data_path, labels_file, batch_size, training_size = 500)
         optimizer_ft = torch.optim.Adam(net.predict.parameters(), lr=LR)
+    if load_name != None:
+        net.load_state_dict(torch.load(models_dir+load_name))
 
     if torch.cuda.is_available():
         net = net.cuda()
@@ -129,7 +129,7 @@ def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d
                            batch_size,
                            num_epochs=NUM_EPOCHS,
                            verbose=False)
-    print "Saving net to disk at - {}".format(models_dir+save_name)
+    print ("Saving net to disk at - {}".format(models_dir+save_name))
     torch.save(net.state_dict(), models_dir+save_name)
     
 
