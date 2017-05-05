@@ -82,13 +82,11 @@ class LabeledKaggleDataset(data.Dataset):
         return len(self.lung_names)
 
 def get_data(lungs_dir, labels_file, batch_size, use_3d = True, crop = None, training_size = 600):
-    trainset = LabeledKaggleDataset(lungs_dir, labels_file, 0, training_size, use_3d, crop = crop)
-    test_end = training_size * 1.1 
-    test_end = min(int(test_end), 644)
-    testset = LabeledKaggleDataset(lungs_dir, labels_file,training_size, test_end, use_3d, crop = crop)
+    trainset = LabeledKaggleDataset(lungs_dir, labels_file, None, training_size, use_3d = use_3d, crop = crop)
+    testset = LabeledKaggleDataset(lungs_dir, labels_file,training_size, None, use_3d = use_3d, crop = crop)
     # Parallel loader breaks on the aws machine python2
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)#, num_workers=1)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False)#, num_workers=1)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=8)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=8)
     return { "train" : trainloader, "val" : testloader}
 
 def rand_interval(low, high):
