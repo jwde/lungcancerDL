@@ -110,9 +110,9 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
 
 
 def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d'):
-    batch_size = 3
+    batch_size = 4
     LR = 0.0001
-    NUM_EPOCHS = 20
+    NUM_EPOCHS = 1
     WEIGHT_INIT = None
     optimizer_ft = None
     net = None
@@ -122,10 +122,18 @@ def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d
         net = models.Cnn3d(WEIGHT_INIT)
         data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=500)
         optimizer_ft = torch.optim.Adam(net.parameters(), lr=LR, weight_decay=0.1)
+
+    elif train_net == 'vgg3d':
+        from vgg3d import get_pretrained_2D_layers
+        net = get_pretrained_2D_layers()
+        data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=20)
+        optimizer_ft = torch.optim.Adam(net.parameters(), lr=LR, weight_decay=0.1)
+
     elif train_net == 'simple':
         # alexnet model
         net = models.Simple()
         data = util.get_data(data_path, labels_file, batch_size,use_3d=False, crop=((30,33), (0,227), (0,227)))
+
     elif train_net == 'alex3d':
         # net alexnet model
         batch_size = 1 #everything is hard coded... whoops

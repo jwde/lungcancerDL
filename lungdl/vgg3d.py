@@ -112,7 +112,6 @@ def get_pretrained_2D_layers():
 
     cnn3d = Vgg3d()
     modules = next(cnn3d.vggfeats.modules())
-    print modules[0]
     modules[0].weight.data = w0
     modules[0].bias.data = torch.FloatTensor([b0])
     modules[2].weight.data = w1
@@ -121,18 +120,18 @@ def get_pretrained_2D_layers():
     modules[5].bias.data = b2
     modules[7].weight.data = w3
     modules[7].bias.data = b3
-    for p in cnn3d.vggfeats.parameters():
-        p.requires_grad = False
+    #for p in cnn3d.vggfeats.parameters():
+    #    p.requires_grad = False
     return cnn3d
 
 def main():
     cnn3d = get_mutant()
     for m in cnn3d.modules():
         if isinstance(m, nn.Conv3d):
-            print m.weight.size()
-            print m.bias.size()
+            print (m.weight.size())
+            print (m.bias.size())
     for p in cnn3d.parameters():
-        print p.requires_grad
+        print (p.requires_grad)
 
 if __name__ == '__main__':
     main()
