@@ -92,9 +92,9 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
 
 
 def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d'):
-    batch_size = 4
+    batch_size = 3
     LR = 0.0001
-    NUM_EPOCHS = 3
+    NUM_EPOCHS = 20
     WEIGHT_INIT = None
     optimizer_ft = None
     net = None
@@ -129,7 +129,7 @@ def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d
                            batch_size,
                            num_epochs=NUM_EPOCHS,
                            verbose=False)
-    print "Saving net to disk at - {}".format(models_dir+save_name)
+    print("Saving net to disk at - {}".format(models_dir+save_name))
     torch.save(net.state_dict(), models_dir+save_name)
     
 
