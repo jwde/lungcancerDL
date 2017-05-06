@@ -107,12 +107,12 @@ def get_data(lungs_dir, labels_file, batch_size, use_3d = True, crop = None, tra
     if augment_data:
         transform = tt.Compose([transforms.RandomShift((10,50, 50)),
                                 transforms.RandomHorizontalFlip(),
-                                transforms.RandomRotation(90),
+                                #transforms.RandomRotation(90),
                                 transforms.ToTensor()])
     else:
         transform = transforms.ToTensor()
     trainset = LabeledKaggleDataset(lungs_dir, labels_file, None, training_size, use_3d = use_3d, crop = crop, input_transform = transform)
-    testset = LabeledKaggleDataset(lungs_dir, labels_file,training_size, None, use_3d = use_3d, crop = crop)
+    testset = LabeledKaggleDataset(lungs_dir, labels_file,training_size, None, use_3d = use_3d, crop = crop, input_transform = transforms.ToTensor())
     num_cores = multiprocessing.cpu_count()
     # Parallel loader breaks on the aws machine python2
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=num_cores)

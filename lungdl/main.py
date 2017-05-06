@@ -97,8 +97,8 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
             for param in model.parameters():
                 flat_weights += [param.data.view(-1).cpu().numpy()]
             flat_weights = np.concatenate(flat_weights)
-            plt.hist(flat_weights, 50)
-            plt.savefig('../models/weights_hist_{}'.format(epoch))
+            #plt.hist(flat_weights, 50)
+            #plt.savefig('../models/weights_hist_{}'.format(epoch))
     except KeyboardInterrupt:
         pass
 

@@ -31,6 +31,7 @@ def main(args):
 
     transform = tt.Compose([transforms.RandomShift((10,50, 50)),
                             transforms.RandomHorizontalFlip(),
+                            transforms.RandomRotation(90),
                             transforms.ToTensor()])
     data = util.LabeledKaggleDataset(args.INPUT_FOLDER, args.LABELS_FILE,
                 input_transform = transform)
