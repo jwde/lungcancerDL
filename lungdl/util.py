@@ -133,3 +133,12 @@ def exp_lr_scheduler(optimizer, epoch, init_lr=0.001, lr_decay_epoch=7):
         param_group['lr'] = lr
 
     return optimizer
+
+def exp_lr_decay(init_lr, decay_rate):
+    def lr_scheduler(optim, epoch):
+        new_lr = init_lr * (decay_rate ** epoch)
+        for param_group in optim.param_groups:
+            param_group['lr'] = new_lr
+        return optim
+    return lr_scheduler
+ 
