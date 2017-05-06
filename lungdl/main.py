@@ -25,7 +25,7 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
 
     try:
         for epoch in range(num_epochs):
-            print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+            print('Epoch {}/{}'.format(epoch, num_epochs))
             print('-' * 10)
 
             # Each epoch has a training and validation phase
@@ -97,8 +97,12 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
             for param in model.parameters():
                 flat_weights += [param.data.view(-1).cpu().numpy()]
             flat_weights = np.concatenate(flat_weights)
-            #plt.hist(flat_weights, 50)
-            #plt.savefig('../models/weights_hist_{}'.format(epoch))
+            plt.hist(flat_weights, 50)
+            plt.savefig('../models/weights_hist_{}'.format(epoch))
+
+            time_elapsed = time.time() - since
+            print('Time spent so far: {:.0f}m {:.0f}s'.format(
+                time_elapsed // 60, time_elapsed % 60))
     except KeyboardInterrupt:
         pass
 
@@ -109,25 +113,24 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
     return best_model, train_loss_history, validation_loss_history
 
 
-def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d'):
-    batch_size = 2
+def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d', NUM_EPOCHS = 20):
+    batch_size = 1
     LR = 0.0001
-    NUM_EPOCHS = 1
     WEIGHT_INIT = None
     optimizer_ft = None
     net = None
-
+    training_size = 500
     if train_net == '3d':
         # cnn3d model
         net = models.Cnn3d(WEIGHT_INIT)
-        data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=500)
+        data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=training_size)
         optimizer_ft = torch.optim.Adam(net.parameters(), lr=LR, weight_decay=0.1)
 
     elif train_net == 'vgg3d':
         from vgg3d import get_pretrained_2D_layers
         net = get_pretrained_2D_layers()
-        data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=20)
-        optimizer_ft = torch.optim.Adam(net.trainable.parameters(), lr=LR, weight_decay=0.1)
+        data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=training_size)
+        optimizer_ft = torch.optim.Adam(net.trainable.parameters(), lr=LR, weight_decay=0.001)
 
     elif train_net == 'simple':
         # alexnet model
@@ -137,9 +140,10 @@ def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d
     elif train_net == 'alex3d':
         # net alexnet model
         batch_size = 1 #everything is hard coded... whoops
-        net = models.Alex3d()
-        data = util.get_data(data_path, labels_file, batch_size, training_size = 500)
-        optimizer_ft = torch.optim.Adam(net.predict.parameters(), lr=LR)
+        net = models.Alex3d(freeze_alex = False)
+        data = util.get_data(data_path, labels_file, batch_size, training_size = training_size)
+        #optimizer_ft = torch.optim.Adam(net.predict.parameters(), lr=LR)
+        optimizer_ft = torch.optim.Adam(net.parameters(), lr=LR)
     if torch.cuda.is_available():
         net = net.cuda()
     criterion = nn.BCELoss()
@@ -170,8 +174,9 @@ if __name__ == '__main__':
     parser.add_argument('--MODELS_DIR', default='/a/data/lungdl/models/', help='Path to model directory')
     parser.add_argument('--SAVE_NAME', default='tmp.model', help='Name of save model')
     parser.add_argument('--LOAD_MODEL', default=None, help='Load pretrained model')
+    parser.add_argument('--NUM_EPOCHS',  '-n', type=int, default=20, help='number of epochs to run')
     
     r = parser.parse_args()
     if not torch.cuda.is_available():
         print("WARNING: Cuda unavailable")
-    main(r.DATA_DIR, r.LABELS_FILE, r.MODELS_DIR, r.SAVE_NAME, r.LOAD_MODEL, r.NET)
+    main(r.DATA_DIR, r.LABELS_FILE, r.MODELS_DIR, r.SAVE_NAME, r.LOAD_MODEL, r.NET, r.NUM_EPOCHS)
