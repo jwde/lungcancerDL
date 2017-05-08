@@ -14,7 +14,7 @@ import os
 import models
 import util
 
-def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_scheduler=None, num_epochs=25, verbose = False):
+def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_scheduler=None, num_epochs=25, verbose = False, validation=True):
     since = time.time()
 
     best_model = model
@@ -29,7 +29,9 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
             print('-' * 10)
 
             # Each epoch has a training and validation phase
-            for phase in ['train', 'val']:
+            phases = ['train', 'val'] if validation else ['train']
+
+            for phase in phases:
                 if phase == 'train':
                     if lr_scheduler is not None:
                         optimizer = lr_scheduler(optimizer, epoch)
@@ -93,12 +95,12 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
                     best_acc = epoch_acc
                     best_model = copy.deepcopy(model)
 
-            flat_weights = []
-            for param in model.parameters():
-                flat_weights += [param.data.view(-1).cpu().numpy()]
-            flat_weights = np.concatenate(flat_weights)
-            plt.hist(flat_weights, 50)
-            plt.savefig('../models/weights_hist_{}'.format(epoch))
+            #flat_weights = []
+            #for param in model.parameters():
+            #    flat_weights += [param.data.view(-1).cpu().numpy()]
+            #flat_weights = np.concatenate(flat_weights)
+            #plt.hist(flat_weights, 50)
+            #plt.savefig('../models/weights_hist_{}'.format(epoch))
 
             time_elapsed = time.time() - since
             print('Time spent so far: {:.0f}m {:.0f}s'.format(
@@ -112,59 +114,103 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
     print('Best val Acc: {:4f}'.format(best_acc))
     return best_model, train_loss_history, validation_loss_history
 
+import vgg3d
+import slicewise_models
+CONFIGS = {
+    'simple' : {
+        'net': models.Simple,
+        'crop' : ((30,33), (0,227), (0,227)),
+    },
+    '3d': {
+        'net' : models.Cnn3d,
+        'crop' : ((0,60),(0,224),(0,224)),
+        'batch_size' : 3,
+    },
+    'alex3d' :{
+        'net' : models.Alex3d,
+        'crop' : ((0,60),(0,227),(0,227)),
+        'params': 'predict',
+        'batch_size' : 1, #ONLY WORKS WITH BATCHSIZE 1
+        
+    },
+    'vgg3d' : {
+        'net' : vgg3d.get_pretrained_2D_layers,
+        'batch_size' : 3,
+    },
+    'alexslicer' :{
+        'net' : slicewise_models.Alex,
+        'params': 'predict',
+        'lr': 0.00001,
+        'lr_scheduler' : util.exp_lr_decay(0.00001, 0.85),
+        'batch_size' : 20,
+    },
+    'resnet50' : {
+        'net' : lambda: slicewise_models.ResNet(50),
+        'crop' : ((0,60),(0,225),(0,225)),
+        'params': 'predict',
+        'lr': 0.0001,
+        'batch_size': 1
+    },
+}
 
-def main(data_path, labels_file, models_dir, save_name, load_name, train_net='3d', NUM_EPOCHS = 20):
-    batch_size = 1
-    LR = 0.0001
-    WEIGHT_INIT = None
+def main(r):
+    # Disable interactive mode for matplotlib so docker wont segfault
+    plt.ioff()
+
+    data_path = r.DATA_DIR
+    labels_file = r.LABELS_FILE
+    models_dir = r.MODELS_DIR
+    save_name = r.SAVE_NAME
+    load_name = r.LOAD_MODEL
+    train_net = r.NET
+    NUM_EPOCHS = r.NUM_EPOCHS
+    training_size = r.TRAINING_SIZE
+    use_validation = not r.NO_VAL
+
+    config = CONFIGS[train_net]
+
+    net = config['net']()
+    trainable_attr = config.get('params', None)
+    params = None
+    if trainable_attr is not None:
+        params = getattr(net, trainable_attr).parameters()
+    else:
+        params = net.parameters()
+        
+    
+    crop = config.get('crop', None)
+    lr = config.get('lr', 0.0001)
+    reg = config.get('reg', 0.)
+    batch_size = config.get('batch_size', 1)
+    lr_scheduler = config.get('lr_scheduler', None)
+
     optimizer_ft = None
-    net = None
-    training_size = 500
-    if train_net == '3d':
-        # cnn3d model
-        net = models.Cnn3d(WEIGHT_INIT)
-        data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=training_size)
-        optimizer_ft = torch.optim.Adam(net.parameters(), lr=LR, weight_decay=0.1)
 
-    elif train_net == 'vgg3d':
-        from vgg3d import get_pretrained_2D_layers
-        net = get_pretrained_2D_layers()
-        data = util.get_data(data_path, labels_file, batch_size, crop=((0,60), (0,224), (0,224)), training_size=training_size)
-        optimizer_ft = torch.optim.Adam(net.trainable.parameters(), lr=LR, weight_decay=0.001)
+    optimizer_ft = torch.optim.Adam(params, lr=lr, weight_decay=reg)
+    data = util.get_data(data_path, labels_file, batch_size, crop=crop, 
+                         training_size=training_size)
 
-    elif train_net == 'simple':
-        # alexnet model
-        net = models.Simple()
-        data = util.get_data(data_path, labels_file, batch_size,use_3d=False, crop=((30,33), (0,227), (0,227)))
-
-    elif train_net == 'alex3d':
-        # net alexnet model
-        batch_size = 1 #everything is hard coded... whoops
-        net = models.Alex3d(freeze_alex = False)
-        data = util.get_data(data_path, labels_file, batch_size, training_size = training_size)
-        #optimizer_ft = torch.optim.Adam(net.predict.parameters(), lr=LR)
-        optimizer_ft = torch.optim.Adam(net.parameters(), lr=LR)
     if torch.cuda.is_available():
         net = net.cuda()
     criterion = nn.BCELoss()
-    # Lung data is (60, 227 , 227), we want (60, 224, 224)
-    #data = util.get_data(data_path, batch_size, crop=((30, 31), (0,224), (0,224)))
+
     if load_name != None:
         net.load_state_dict(torch.load(models_dir+load_name))
       
-    plt.ioff()
     model_ft, train_loss, validation_loss = train_model(net, 
                                             data, 
                                             criterion,
                                             optimizer_ft,
                                             batch_size,
+                                            lr_scheduler=lr_scheduler,
                                             num_epochs=NUM_EPOCHS,
-                                            verbose=False)
+                                            verbose=False,
+                                            validation = use_validation)
+
     print("Saving net to disk at - {}".format(models_dir+save_name))
     torch.save(net.state_dict(), os.path.join(models_dir,save_name))
     torch.save(train_loss, os.path.join(models_dir,save_name + '_train_loss'))
-    torch.save(validation_loss, os.path.join(models_dir,save_name + '_validation_loss'))
-    
+    torch.save(validation_loss, os.path.join(models_dir,save_name + '_validation_loss'))    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -175,8 +221,10 @@ if __name__ == '__main__':
     parser.add_argument('--SAVE_NAME', default='tmp.model', help='Name of save model')
     parser.add_argument('--LOAD_MODEL', default=None, help='Load pretrained model')
     parser.add_argument('--NUM_EPOCHS',  '-n', type=int, default=20, help='number of epochs to run')
+    parser.add_argument('--TRAINING_SIZE',  '-s', type=int, default=500, help='number of')
+    parser.add_argument('--NO_VAL', type=bool, nargs='?', const=True, default=False, help="Don't perform validation step")
     
     r = parser.parse_args()
     if not torch.cuda.is_available():
         print("WARNING: Cuda unavailable")
-    main(r.DATA_DIR, r.LABELS_FILE, r.MODELS_DIR, r.SAVE_NAME, r.LOAD_MODEL, r.NET, r.NUM_EPOCHS)
+    main(r)

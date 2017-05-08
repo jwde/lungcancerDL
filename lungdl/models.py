@@ -143,7 +143,7 @@ class Alex3d(nn.Module):
             nn.MaxPool3d(kernel_size=(20,6,6), stride=1, padding=0),
             nn.Sigmoid(),)
         
-        for m in self.modules():
+        for m in self.predict.modules():
             if isinstance(m, nn.Conv3d):
                 #Xavier initialization
                 var = None
