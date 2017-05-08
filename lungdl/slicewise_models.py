@@ -28,6 +28,15 @@ def simple_slicer(extractor, feature_dims, feature_size, freeze = True):
         nn.Sigmoid())
     return PretrainedSlicer(extractor, predict)
 
+def simple_slicerMIL(extractor, feature_dims, freeze = True):
+    cnn_to_bw(extractor, IMGNET_MEAN, IMGNET_STD)
+    if freeze:
+        for param in extractor.parameters():
+            param.requires_grad = False
+    mil_scores = nn.Sequential(
+        nn.Conv3d(feature_dims, 1, 1, 1, 0))
+    return PretrainedSlicerMIL(extractor, mil_scores)
+
 def resnet_features(n):
     resnet = None
     if n == 18:
@@ -58,10 +67,53 @@ def ResNet(n):
     # resnet takes 227 x 227 and outputs 8x8x2048 in last layer
     extractor = resnet_features(n).float()
     return simple_slicer(extractor, 2048, (60, 8, 8)).float()
+def ResNetMIL(n):
+    extractor = resnet_features(n).float()
+    return simple_slicerMIL(extractor, 2048).float()
 
 def Alex(): 
     extractor = models.alexnet(pretrained=True).float().features
     return simple_slicer(extractor, 256, (60, 6, 6)).float()
+
+def AlexMIL():
+    extractor = models.alexnet(pretrained=True).float().features
+    return simple_slicerMIL(extractor, 256).float()
+
+class PretrainedSlicerMIL(nn.Module):
+    def __init__(self, features, mil_scores, weight_init=None):
+        super(PretrainedSlicerMIL, self).__init__()
+        self.features = features # a 2D convnet
+        self.mil_scores = mil_scores
+        xavier_init3d(self.mil_scores.modules())
+
+    def forward(self, xs):
+        N, C, D, H, W = xs.size()
+        #exit()
+
+        # Collect features for each element in batch
+        xs.volatile = True
+        feats = []
+
+        # Forward pass each element through extractor to get slicewise features
+        for x in xs:
+            # We want (D, C, H, W) instead of (C, D, H, W)
+            # Overloading the "batch" dimension so we do all slices at once
+            slices = x.transpose(1,0)
+            slice_feats = self.features(slices)
+
+            # Now slice_feats are (N, C, H, W) or (60, 256, 6, 6)
+            # So we transpose again
+            slice_feats = slice_feats.transpose(0,1)
+            feats.append(slice_feats)
+
+        # collect features into one big tensor
+        feats = torch.stack(feats)
+        feats.volatile = False
+        feats.requires_grad = True
+
+        scores = self.mil_scores(feats).view(N,-1)
+        probs = nn.functional.sigmoid(scores.max(1)[0].view(N,-1))
+        return probs, scores
 
 class PretrainedSlicer(nn.Module):
     def __init__(self, features, predict, weight_init=None):

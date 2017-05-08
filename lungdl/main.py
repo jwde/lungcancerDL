@@ -14,7 +14,9 @@ import os
 import models
 import util
 
-def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_scheduler=None, num_epochs=25, verbose = False, validation=True):
+def train_model(model,dset_loaders, criterion, optimizer, batch_size,
+                get_probs = None ,lr_scheduler=None, num_epochs=25, 
+                verbose = False, validation=True):
     since = time.time()
 
     best_model = model
@@ -65,8 +67,7 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
                     #weights = 0.75 * labels.data + 0.25 * (1 - labels.data)
                     #weights = weights.view(1,1).float()
                     #crit = nn.BCELoss(weight=weights)
-                    crit = nn.BCELoss()
-                    loss = crit(outputs, labels)
+                    loss = criterion(outputs, labels)
                     if phase == 'train':
                         train_loss_history += [loss.data.cpu()]
                     else:
@@ -78,6 +79,8 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size, lr_schedul
                         optimizer.step()
 
                     # statistics
+                    if get_probs:
+                        outputs = get_probs(outputs)
                     running_loss += loss.data[0]
                     running_corrects += torch.sum((outputs.data > .5) == (labels.data > .5))
                     if phase == 'train' and verbose and i % 25 == 0:
@@ -145,13 +148,36 @@ CONFIGS = {
         'batch_size' : 20,
         'augment_data': False
     },
+    'alexslicerMIL':{
+        'net' : slicewise_models.AlexMIL,
+        'params': 'mil_scores',
+        'lr': 0.004, # overfits 20 examples with LR 0.004
+        #'lr_scheduler' : util.exp_lr_decay(0.00001, 0.85),
+        'batch_size' : 20,
+        'augment_data': False,
+        'criterion' : lambda y, t: util.sparse_BCE_loss(y, t, 0.00001),
+        'get_probs' : lambda outs: outs[0],
+    },
     'resnet50' : {
         'net' : lambda: slicewise_models.ResNet(50),
         'crop' : ((0,60),(0,225),(0,225)),
         'params': 'predict',
-        'lr': 0.00001,
-        'batch_size': 1,
-        'augment_data': False
+        'lr': 0.000005,
+        'batch_size': 4,
+        'lr_scheduler': util.exp_lr_decay(0.000005, 0.95),
+        'augment_data': True
+    },
+    'resnet50MIL' : {
+        'net' : lambda: slicewise_models.ResNetMIL(50),
+        'crop' : ((0,60),(0,224),(0,224)),
+        'params': 'mil_scores',
+        'lr': 0.0005,
+        'batch_size': 4,
+        'lr_scheduler': util.exp_lr_decay(0.0005, 0.95),
+        'augment_data': False,
+        'criterion' : lambda y, t: util.sparse_BCE_loss(y, t, 0.00001),
+        'get_probs' : lambda outs: outs[0],
+    
     },
     'resnet152' : {
         'net' : lambda: slicewise_models.ResNet(152),
@@ -164,7 +190,6 @@ CONFIGS = {
         'reg': 0.0001
     },
 }
-
 def main(r):
     # Disable interactive mode for matplotlib so docker wont segfault
     plt.ioff()
@@ -196,6 +221,8 @@ def main(r):
     batch_size = config.get('batch_size', 1)
     lr_scheduler = config.get('lr_scheduler', None)
     augment_data = config.get('augment_data', True)
+    criterion = config.get('criterion', nn.BCELoss())
+    get_probs = config.get('get_probs', None)
 
     optimizer_ft = None
 
@@ -206,7 +233,6 @@ def main(r):
 
     if torch.cuda.is_available():
         net = net.cuda()
-    criterion = nn.BCELoss()
 
     if load_name != None:
         net.load_state_dict(torch.load(models_dir+load_name))
@@ -216,6 +242,7 @@ def main(r):
                                             criterion,
                                             optimizer_ft,
                                             batch_size,
+                                            get_probs=get_probs,
                                             lr_scheduler=lr_scheduler,
                                             num_epochs=NUM_EPOCHS,
                                             verbose=False,

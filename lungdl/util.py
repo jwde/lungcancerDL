@@ -5,6 +5,7 @@ util provides functions for manipulating data before processing by the network
 
 """
 import torch
+import torch.nn as nn
 import torch.utils.data as data
 import csv
 import numpy as np
@@ -142,3 +143,9 @@ def exp_lr_decay(init_lr, decay_rate):
         return optim
     return lr_scheduler
  
+def sparse_BCE_loss(outputs, labels, reg=0.0001):
+    probs, scores = outputs
+    loss = nn.functional.binary_cross_entropy(probs, labels)
+    l1loss = scores.sum(1).sum(0) / probs.size()[0]
+
+    return loss + reg * l1loss
