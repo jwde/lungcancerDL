@@ -38,8 +38,8 @@ def resnet_features(n):
         resnet = models.resnet50(pretrained=True)
     elif n == 101:
         resnet = models.resnet101(pretrained=True)
-    elif n == 151:
-        resnet = models.resnet151(pretrained=True)
+    elif n == 152:
+        resnet = models.resnet152(pretrained=True)
     else:
         print("WARNING: pretrained resnet{} does not exist".format(n))
         return
@@ -51,7 +51,7 @@ def resnet_features(n):
         resnet.layer1,
         resnet.layer2,
         resnet.layer3,
-        resnet.layer4,)
+        resnet.layer4)
     return features
 
 def ResNet(n):
@@ -71,11 +71,11 @@ class PretrainedSlicer(nn.Module):
         xavier_init3d(self.predict.modules())
 
     def forward(self, xs):
-        xs = xs.float()
         N, C, D, H, W = xs.size()
         #exit()
 
         # Collect features for each element in batch
+        xs.volatile = True
         feats = []
 
         # Forward pass each element through extractor to get slicewise features
@@ -92,6 +92,8 @@ class PretrainedSlicer(nn.Module):
 
         # collect features into one big tensor
         feats = torch.stack(feats)
+        feats.volatile = False
+        feats.requires_grad = True
         pred = self.predict(feats)
         return pred.view(N, -1) 
 

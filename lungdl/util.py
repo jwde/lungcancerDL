@@ -79,7 +79,7 @@ class LabeledKaggleDataset(data.Dataset):
             size = img.size()
             img = img.view (size[1], size[2], size[3])
 
-        return img, target
+        return img.float(), target
 
     def __len__(self):
         return len(self.lung_names)

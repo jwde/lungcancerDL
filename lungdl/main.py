@@ -143,13 +143,25 @@ CONFIGS = {
         'lr': 0.00001,
         'lr_scheduler' : util.exp_lr_decay(0.00001, 0.85),
         'batch_size' : 20,
+        'augment_data': False
     },
     'resnet50' : {
         'net' : lambda: slicewise_models.ResNet(50),
         'crop' : ((0,60),(0,225),(0,225)),
         'params': 'predict',
-        'lr': 0.0001,
-        'batch_size': 1
+        'lr': 0.00001,
+        'batch_size': 1,
+        'augment_data': False
+    },
+    'resnet152' : {
+        'net' : lambda: slicewise_models.ResNet(152),
+        'crop' : ((0,60),(0,225),(0,225)),
+        'params': 'predict',
+        'lr': 0.000005,
+        'lr_scheduler': util.exp_lr_decay(0.000005, 0.95),
+        'batch_size': 4,
+        'augment_data': True,
+        'reg': 0.0001
     },
 }
 
@@ -183,12 +195,14 @@ def main(r):
     reg = config.get('reg', 0.)
     batch_size = config.get('batch_size', 1)
     lr_scheduler = config.get('lr_scheduler', None)
+    augment_data = config.get('augment_data', True)
 
     optimizer_ft = None
 
     optimizer_ft = torch.optim.Adam(params, lr=lr, weight_decay=reg)
     data = util.get_data(data_path, labels_file, batch_size, crop=crop, 
-                         training_size=training_size)
+                         training_size=training_size,
+                         augment_data=augment_data)
 
     if torch.cuda.is_available():
         net = net.cuda()
