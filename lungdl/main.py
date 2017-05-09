@@ -1,6 +1,6 @@
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+#import matplotlib
+#matplotlib.use('Agg')
+#import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -195,12 +195,19 @@ CONFIGS = {
         'xgboost': True,
         'batch_size': 4,
         'augment_data': False,
-        'max_depth': 10
+        'max_depth': 2
     },
+    'alexboosted': {
+        'net': lambda: slicewise_models.AlexBoosted(),
+        'xgboost': True,
+        'batch_size': 4,
+        'augment_data': False,
+        'max_depth': 3
+    }
 }
 def main(r):
     # Disable interactive mode for matplotlib so docker wont segfault
-    plt.ioff()
+    #plt.ioff()
 
     data_path = r.DATA_DIR
     labels_file = r.LABELS_FILE

@@ -99,6 +99,10 @@ def ResNetBoosted(n):
     extractor = resnet_features(n, avg_pool=True).float()
     return PretrainedFeaturesXGBoost(extractor)
 
+def AlexBoosted():
+    extractor = models.alexnet(pretrained=True).float().features
+    return PretrainedFeaturesXGBoost(extractor)
+
 class PretrainedSlicerMIL(nn.Module):
     def __init__(self, features, mil_scores, weight_init=None):
         super(PretrainedSlicerMIL, self).__init__()
