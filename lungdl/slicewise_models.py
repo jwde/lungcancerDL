@@ -4,6 +4,7 @@ from torch.autograd.variable import Variable as V
 import torch
 from cnn_to_grayscale import cnn_to_bw
 import math
+from xgboost_slicer import PretrainedFeaturesXGBoost
 
 # Image net mean and std deviations for pytorch pretrained models
 # (Used for RGB -> Grayscale conversion)
@@ -37,7 +38,7 @@ def simple_slicerMIL(extractor, feature_dims, freeze = True):
         nn.Conv3d(feature_dims, 1, 1, 1, 0))
     return PretrainedSlicerMIL(extractor, mil_scores)
 
-def resnet_features(n):
+def resnet_features(n, avg_pool=False):
     resnet = None
     if n == 18:
         resnet = models.resnet18(pretrained=True)
@@ -52,15 +53,28 @@ def resnet_features(n):
     else:
         print("WARNING: pretrained resnet{} does not exist".format(n))
         return
-    features = nn.Sequential(
-        resnet.conv1,
-        resnet.bn1,
-        resnet.relu,
-        resnet.maxpool,
-        resnet.layer1,
-        resnet.layer2,
-        resnet.layer3,
-        resnet.layer4)
+    features = None
+    if avg_pool:
+        features = nn.Sequential(
+            resnet.conv1,
+            resnet.bn1,
+            resnet.relu,
+            resnet.maxpool,
+            resnet.layer1,
+            resnet.layer2,
+            resnet.layer3,
+            resnet.layer4,
+            nn.AvgPool2d(8))
+    else:
+        features = nn.Sequential(
+            resnet.conv1,
+            resnet.bn1,
+            resnet.relu,
+            resnet.maxpool,
+            resnet.layer1,
+            resnet.layer2,
+            resnet.layer3,
+            resnet.layer4)
     return features
 
 def ResNet(n):
@@ -78,6 +92,16 @@ def Alex():
 def AlexMIL():
     extractor = models.alexnet(pretrained=True).float().features
     return simple_slicerMIL(extractor, 256).float()
+
+# boosted models are not pytorch modules and must be trained by calling
+# model.train(train_loader, val_loader, rounds, max_depth)
+def ResNetBoosted(n):
+    extractor = resnet_features(n, avg_pool=True).float()
+    return PretrainedFeaturesXGBoost(extractor)
+
+def AlexBoosted():
+    extractor = models.alexnet(pretrained=True).float().features
+    return PretrainedFeaturesXGBoost(extractor)
 
 class PretrainedSlicerMIL(nn.Module):
     def __init__(self, features, mil_scores, weight_init=None):

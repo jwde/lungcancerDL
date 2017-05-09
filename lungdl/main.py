@@ -1,6 +1,6 @@
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+#import matplotlib
+#matplotlib.use('Agg')
+#import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -189,10 +189,25 @@ CONFIGS = {
         'augment_data': True,
         'reg': 0.0001
     },
+    'resnet152boosted' : {
+        'net': lambda: slicewise_models.ResNetBoosted(152),
+        'crop' : ((0,60),(0,225),(0,225)),
+        'xgboost': True,
+        'batch_size': 4,
+        'augment_data': False,
+        'max_depth': 2
+    },
+    'alexboosted': {
+        'net': lambda: slicewise_models.AlexBoosted(),
+        'xgboost': True,
+        'batch_size': 4,
+        'augment_data': False,
+        'max_depth': 3
+    }
 }
 def main(r):
     # Disable interactive mode for matplotlib so docker wont segfault
-    plt.ioff()
+    #plt.ioff()
 
     data_path = r.DATA_DIR
     labels_file = r.LABELS_FILE
@@ -207,14 +222,6 @@ def main(r):
     config = CONFIGS[train_net]
 
     net = config['net']()
-    trainable_attr = config.get('params', None)
-    params = None
-    if trainable_attr is not None:
-        params = getattr(net, trainable_attr).parameters()
-    else:
-        params = net.parameters()
-        
-    
     crop = config.get('crop', None)
     lr = config.get('lr', 0.0001)
     reg = config.get('reg', 0.)
@@ -223,14 +230,30 @@ def main(r):
     augment_data = config.get('augment_data', True)
     criterion = config.get('criterion', nn.BCELoss())
     get_probs = config.get('get_probs', None)
+    xgboost = config.get('xgboost', False)
+    max_depth = config.get('max_depth', 10)
 
-    optimizer_ft = None
-
-    optimizer_ft = torch.optim.Adam(params, lr=lr, weight_decay=reg)
     data = util.get_data(data_path, labels_file, batch_size, crop=crop, 
                          training_size=training_size,
                          augment_data=augment_data)
 
+    if xgboost:
+        # can't train like a pytorch net
+        net.train(data['train'], data['val'], NUM_EPOCHS, max_depth)
+
+        return
+
+    trainable_attr = config.get('params', None)
+    params = None
+    if trainable_attr is not None:
+        params = getattr(net, trainable_attr).parameters()
+    else:
+        params = net.parameters()
+        
+
+    optimizer_ft = None
+
+    optimizer_ft = torch.optim.Adam(params, lr=lr, weight_decay=reg)
     if torch.cuda.is_available():
         net = net.cuda()
 
