@@ -61,7 +61,7 @@ class LabeledKaggleDataset(data.Dataset):
     def __getitem__(self, index):
         f = self.lung_names[index] + '.npy'
         img = load_img(self.image_dir + f)
-        img = hu_to_visual_features(img, -1500, 500)
+        img = hu_to_visual_features(img, -1000, 400)
         # Uncommented on Jason Branch - I dont have the pre thresholding data
         #img = torch.from_numpy(img).float()
         target = torch.FloatTensor(1)

@@ -146,7 +146,7 @@ CONFIGS = {
         'lr': 0.00001,
         'lr_scheduler' : util.exp_lr_decay(0.00001, 0.85),
         'batch_size' : 20,
-        'augment_data': False
+        'augment_data': True
     },
     'alexslicerMIL':{
         'net' : slicewise_models.AlexMIL,
@@ -154,7 +154,7 @@ CONFIGS = {
         'lr': 0.004, # overfits 20 examples with LR 0.004
         #'lr_scheduler' : util.exp_lr_decay(0.00001, 0.85),
         'batch_size' : 20,
-        'augment_data': False,
+        'augment_data': True,
         'criterion' : lambda y, t: util.sparse_BCE_loss(y, t, 0.00001),
         'get_probs' : lambda outs: outs[0],
     },
