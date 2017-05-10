@@ -132,9 +132,27 @@ class Alex3d(nn.Module):
         self.predict = nn.Sequential(
             # per-instance logistic regression implemented as a 1x1 convolution
             # to elementwise sigmoid, to max pool
-            nn.Conv3d(256, 1, kernel_size=(20,6,6), stride=1, padding=0),
-            nn.Sigmoid(),
-        )
+            nn.Conv3d(256, 1, kernel_size=1, stride=1, padding=0),
+#            nn.ReLU(inplace=True),
+#            nn.BatchNorm3d(1048),
+#            nn.Conv3d(1048, 1, kernel_size=1, stride=1, padding=0),
+        #k    nn.Conv3d(1048, 1048, kernel_size=(1,1,1), stride=1, padding=0),
+        #k    nn.ReLU(inplace=True),
+        #k    nn.BatchNorm3d(1048),
+#            nn.Conv3d(128, 1, kernel_size=1, stride=1, padding=0),
+            nn.MaxPool3d(kernel_size=(20,6,6), stride=1, padding=0),
+            nn.Sigmoid(),)
+        
+        for m in self.predict.modules():
+            if isinstance(m, nn.Conv3d):
+                #Xavier initialization
+                var = None
+                if weight_init:
+                    var = weight_init
+                else:
+                    n = m.kernel_size[0] * m.kernel_size[1] * m.kernel_size[2] * m.in_channels
+                    var = math.sqrt(2./n)
+                m.weight.data.normal_(0, var)
 
     def forward(self, x):
         size = x.size()

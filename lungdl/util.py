@@ -5,11 +5,14 @@ util provides functions for manipulating data before processing by the network
 
 """
 import torch
+import torch.nn as nn
 import torch.utils.data as data
 import csv
 import numpy as np
 import multiprocessing
 from itertools import islice
+import torchvision.transforms as tt
+import transforms
 
 def hu_to_visual_features(img, low, high):
     """
@@ -58,9 +61,9 @@ class LabeledKaggleDataset(data.Dataset):
     def __getitem__(self, index):
         f = self.lung_names[index] + '.npy'
         img = load_img(self.image_dir + f)
-        img = hu_to_visual_features(img, -1500, 500)
+        img = hu_to_visual_features(img, -1000, 400)
         # Uncommented on Jason Branch - I dont have the pre thresholding data
-        img = torch.from_numpy(img).float()
+        #img = torch.from_numpy(img).float()
         target = torch.FloatTensor(1)
         target[0] = self.lung_labels[index]
         if self.input_transform:
@@ -77,7 +80,7 @@ class LabeledKaggleDataset(data.Dataset):
             size = img.size()
             img = img.view (size[1], size[2], size[3])
 
-        return img, target
+        return img.float(), target
 
     def __len__(self):
         return len(self.lung_names)
@@ -101,10 +104,17 @@ class LabeledKaggleRamDataset(data.Dataset):
     def __getitem__(self, index):
         return self.images[index], self.targets[index]
 
-def get_data(lungs_dir, labels_file, batch_size, use_3d = True, crop = None, training_size = 600):
+def get_data(lungs_dir, labels_file, batch_size, use_3d = True, crop = None, training_size = 600, augment_data = True):
+    if augment_data:
+        transform = tt.Compose([transforms.RandomShift((10,50, 50)),
+                                transforms.RandomHorizontalFlip(),
+                                #transforms.RandomRotation(90),
+                                transforms.ToTensor()])
+    else:
+        transform = transforms.ToTensor()
+    trainset = LabeledKaggleDataset(lungs_dir, labels_file, None, training_size, use_3d = use_3d, crop = crop, input_transform = transform)
+    testset = LabeledKaggleDataset(lungs_dir, labels_file,training_size, None, use_3d = use_3d, crop = crop, input_transform = transforms.ToTensor())
     num_cores = multiprocessing.cpu_count()
-    trainset = LabeledKaggleRamDataset(lungs_dir, labels_file, None, training_size, use_3d = use_3d, crop = crop)
-    testset = LabeledKaggleRamDataset(lungs_dir, labels_file,training_size, None, use_3d = use_3d, crop = crop)
     # Parallel loader breaks on the aws machine python2
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=num_cores)
     testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=num_cores)
@@ -124,3 +134,18 @@ def exp_lr_scheduler(optimizer, epoch, init_lr=0.001, lr_decay_epoch=7):
         param_group['lr'] = lr
 
     return optimizer
+
+def exp_lr_decay(init_lr, decay_rate):
+    def lr_scheduler(optim, epoch):
+        new_lr = init_lr * (decay_rate ** epoch)
+        for param_group in optim.param_groups:
+            param_group['lr'] = new_lr
+        return optim
+    return lr_scheduler
+ 
+def sparse_BCE_loss(outputs, labels, reg=0.0001):
+    probs, scores = outputs
+    loss = nn.functional.binary_cross_entropy(probs, labels)
+    l1loss = scores.sum(1).sum(0) / probs.size()[0]
+
+    return loss + reg * l1loss

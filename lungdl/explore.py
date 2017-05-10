@@ -3,6 +3,8 @@ import pandas as pd
 #import dicom
 import os
 import scipy.ndimage
+import matplotlib
+#matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import argparse
 
@@ -45,7 +47,14 @@ def numpy_plot_rand(input_dir):
     lung_files = [os.path.splitext(f)[0] for f in os.listdir(input_dir)]
     print (input_dir, lung_files[:10])
     lung = get_random_lung(input_dir,lung_files)
-    plt.imshow(lung, cmap=plt.cm.gray)
+    print (lung.shape)
+    plt.imshow(lung[30,:,:], cmap=plt.cm.gray)
+    plt.show()
+
+def plot(lung):
+    if type(lung) is not np.ndarray:
+        lung = lung.numpy()
+    plt.imshow(lung[0,30,:,:], cmap=plt.cm.gray)
     plt.show()
 
 if __name__ == "__main__":
@@ -56,6 +65,4 @@ if __name__ == "__main__":
     patients.sort()
     numpy_plot_rand(r.INPUT_FOLDER)
 
-
-    
 

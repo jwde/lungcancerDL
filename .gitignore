@@ -16,5 +16,6 @@ models/*
 mil/cifar-10
 mil/alexnet_weights.h5
 *.pyc
+.*.swo
 
 .DS_Store
