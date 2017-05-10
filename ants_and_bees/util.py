@@ -61,7 +61,7 @@ class LabeledKaggleDataset(data.Dataset):
     def __getitem__(self, index):
         f = self.lung_names[index] + '.npy'
         img = load_img(self.image_dir + f)
-        img = hu_to_visual_features(img, -1000, 400)
+        img = hu_to_visual_features(img, -1500, 500)
         # Uncommented on Jason Branch - I dont have the pre thresholding data
         #img = torch.from_numpy(img).float()
         target = torch.FloatTensor(1)
@@ -146,6 +146,6 @@ def exp_lr_decay(init_lr, decay_rate):
 def sparse_BCE_loss(outputs, labels, reg=0.0001):
     probs, scores = outputs
     loss = nn.functional.binary_cross_entropy(probs, labels)
-    l1loss = nn.functional.sigmoid(scores).sum(1).sum(0) / probs.size()[0]
+    l1loss = scores.sum(1).sum(0) / probs.size()[0]
 
     return loss + reg * l1loss
