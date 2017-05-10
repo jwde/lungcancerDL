@@ -97,7 +97,6 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size,
                 epoch_acc = float(running_corrects) / (len(dset_loaders[phase]) * batch_size)
 
                 print('{} Loss: {:.4f} Acc: {:.4f} AP {:.4f}'.format(phase, epoch_loss, epoch_acc, ap_total[phase].value()[0])) 
-                print (ap_total[phase].value()[0])
 
                 # deep copy the model
                 if phase == 'val' and epoch_acc > best_acc:
