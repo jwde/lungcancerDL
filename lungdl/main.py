@@ -9,6 +9,8 @@ import time
 import copy
 import argparse
 import os
+import sklearn.metrics as metrics
+from apmeter import APMeter
 
 # Within package
 import models
@@ -34,6 +36,7 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size,
             phases = ['train', 'val'] if validation else ['train']
 
             for phase in phases:
+                ap_total = {p:APMeter() for p in phases}
                 if phase == 'train':
                     if lr_scheduler is not None:
                         optimizer = lr_scheduler(optimizer, epoch)
@@ -81,6 +84,8 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size,
                     # statistics
                     if get_probs:
                         outputs = get_probs(outputs)
+                    average_precision = metrics.average_precision_score(labels.data.cpu().numpy(), outputs.data.cpu().numpy())
+                    ap_total[phase].add(outputs.data, labels.data)
                     running_loss += loss.data[0]
                     running_corrects += torch.sum((outputs.data > .5) == (labels.data > .5))
                     if phase == 'train' and verbose and i % 25 == 0:
@@ -91,7 +96,8 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size,
                 epoch_loss = running_loss / (len(dset_loaders[phase]))
                 epoch_acc = float(running_corrects) / (len(dset_loaders[phase]) * batch_size)
 
-                print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc)) 
+                print('{} Loss: {:.4f} Acc: {:.4f} AP {:.4f}'.format(phase, epoch_loss, epoch_acc, ap_total[phase].value()[0])) 
+                print (ap_total[phase].value()[0])
 
                 # deep copy the model
                 if phase == 'val' and epoch_acc > best_acc:
