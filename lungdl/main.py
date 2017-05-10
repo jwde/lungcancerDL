@@ -158,6 +158,24 @@ CONFIGS = {
         'criterion' : lambda y, t: util.sparse_BCE_loss(y, t, 0.00001),
         'get_probs' : lambda outs: outs[0],
     },
+    'alexslicershallow' :{
+        'net' : slicewise_models.AlexShallow,
+        'params': 'predict',
+        'lr': 0.000001,
+        #'lr_scheduler' : util.exp_lr_decay(0.00005, 0.85),
+        'batch_size' : 20,
+        'augment_data': False
+    },
+    'alexslicershallowMIL':{
+        'net' : slicewise_models.AlexShallowMIL,
+        'params': 'mil_scores',
+        'lr': 0.004, # overfits 20 examples with LR 0.004
+        'lr_scheduler' : util.exp_lr_decay(0.004, 0.85),
+        'batch_size' : 20,
+        'augment_data': False,
+        'criterion' : lambda y, t: util.sparse_BCE_loss(y, t, 0.00001),
+        'get_probs' : lambda outs: outs[0],
+    },
     'resnet50' : {
         'net' : lambda: slicewise_models.ResNet(50),
         'crop' : ((0,60),(0,225),(0,225)),

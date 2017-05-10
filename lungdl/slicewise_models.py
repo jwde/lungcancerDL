@@ -38,6 +38,10 @@ def simple_slicerMIL(extractor, feature_dims, freeze = True):
         nn.Conv3d(feature_dims, 1, 1, 1, 0))
     return PretrainedSlicerMIL(extractor, mil_scores)
 
+def alex_shallow_features(n):
+    alex = models.alexnet(pretrained=True)
+    return nn.Sequential(*[alex.features[i] for i in range(n)])
+
 def resnet_features(n, avg_pool=False):
     resnet = None
     if n == 18:
@@ -92,6 +96,14 @@ def Alex():
 def AlexMIL():
     extractor = models.alexnet(pretrained=True).float().features
     return simple_slicerMIL(extractor, 256).float()
+
+def AlexShallow():
+    extractor = alex_shallow_features(6)
+    return simple_slicer(extractor, 192, (60, 13, 13)).float()
+    
+def AlexShallowMIL():
+    extractor = alex_shallow_features(6)
+    return simple_slicerMIL(extractor, 192).float()
 
 # boosted models are not pytorch modules and must be trained by calling
 # model.train(train_loader, val_loader, rounds, max_depth)
