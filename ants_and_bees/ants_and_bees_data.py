@@ -66,6 +66,7 @@ def get_transforms(dset_config):
 
     return data_transforms
 
+
 def to_bw(img2d):
     return img2d.mean(0)
 
@@ -82,8 +83,17 @@ def random_embed(size, peturb_xy=False):
         return new
     return embed
 
-
-
+def random_tile(tile_loader, tile_shape, target_size):
+        C, H, W = img_size
+        img_size = H
+        num_tile = int(target_size / img_size) + 1
+        precrop_width = num_time * img_size
+        new = torch.FloatTensor(C, precrop_width, precrop_width)
+        for i in range(num_tile):
+            for j in range(num_tile):
+                x = i * img_size
+                y = j * img_size
+                new[:, x : x + img_size, y : y + img_size] = next(tile_loader)
 
 def get_ants_and_bees(dset_config):
     data_transforms = get_transforms(dset_config)
