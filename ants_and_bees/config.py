@@ -2,7 +2,190 @@
 # Configurations for test runs
 
 CONFIGS = {
-    'ants_bees' : {
+    'ants_bees_MIL' : {
+        'info' : 'AlexNetConv5 -> MIL -> Sigmoid',
+        'model' : 'alexMIL',
+        'params' : 'mil_scores',
+        'dset_config' : None,
+        'dataset' : 'ants_and_bees',
+
+        'epochs' : 10,
+        'init_lr' : 0.001,
+        'decay' : 0.60,
+        'criterion' : {
+            'type' : 'bce_sparse'
+        },
+        'weight_reg' : 0,
+        'batch_size' : 4,
+        'is_tuple' : True,
+    },
+
+    'ants_bees_MIL_113_F' : {
+        'info' : 'AlexNetConv5 -> MIL -> Sigmoid',
+        'model' : 'alexMIL',
+        'params' : 'mil_scores',
+        'dset_config' : {
+            'size' : 113,
+            'peturb_xy': False,
+        },
+        'dataset' : 'ants_and_bees',
+
+        'epochs' : 50,
+        'init_lr' : 0.02,
+        'decay' : 0.9,
+        'criterion' : {
+            'type' : 'bce_sparse'
+        },
+        'weight_reg' : 0,
+        'batch_size' : 4,
+        'is_tuple' : True,
+    },
+
+    'ants_bees_MIL_113_T' : {
+        'info' : 'AlexNetConv5 -> MIL -> Sigmoid',
+        'model' : 'alexMIL',
+        'params' : 'mil_scores',
+        'dset_config' : {
+            'size' : 113,
+            'peturb_xy': True
+        },
+        'dataset' : 'ants_and_bees',
+
+        'epochs' : 50,
+        'init_lr' : 0.02,
+        'decay' : 0.9,
+        'criterion' : {
+            'type' : 'bce_sparse'
+        },
+        'weight_reg' : 0,
+        'batch_size' : 4,
+        'is_tuple' : True,
+    },
+
+    'ants_bees_MIL_50_F' : {
+        'info' : 'AlexNetConv5 -> MIL -> Sigmoid',
+        'model' : 'alexMIL',
+        'params' : 'mil_scores',
+        'dset_config' : {
+            'size' : 50,
+            'peturb_xy': False
+        },
+        'dataset' : 'ants_and_bees',
+
+        'epochs' : 50,
+        'init_lr' : 0.002,
+        'decay' : .9,
+        'criterion' : {
+            'type' : 'bce_sparse'
+        },
+        'weight_reg' : 0,
+        'batch_size' : 4,
+        'is_tuple' : True,
+    },
+
+    'ants_bees_MIL_50_T' : {
+        'info' : 'AlexNetConv5 -> MIL -> Sigmoid',
+        'model' : 'alexMIL',
+        'params' : 'mil_scores',
+        'dset_config' : {
+            'size' : 50,
+            'peturb_xy': True,
+        },
+        'dataset' : 'ants_and_bees',
+
+        'epochs' : 50,
+        'init_lr' : 0.002,
+        'decay' : 0.90,
+        'criterion' : {
+            'type' : 'bce_sparse'
+        },
+        'weight_reg' : 0,
+        'batch_size' : 4,
+        'is_tuple' : True,
+    },
+
+
+    'ants_bees_MIL_25_F' : {
+        'info' : 'AlexNetConv5 -> MIL -> Sigmoid',
+        'model' : 'alexMIL',
+        'params' : 'mil_scores',
+        'dset_config' : {
+            'size' : 25,
+            'peturb_xy': False,
+        },
+        'dataset' : 'ants_and_bees',
+
+        'epochs' : 50,
+        'init_lr' : 0.002,
+        'decay' : 0.90,
+        'criterion' : {
+            'type' : 'bce_sparse'
+        },
+        'weight_reg' : 0,
+        'batch_size' : 4,
+        'is_tuple' : True,
+    },
+    'ants_bees_MIL_25_T' : {
+        'info' : 'AlexNetConv5 -> MIL -> Sigmoid',
+        'model' : 'alexMIL',
+        'params' : 'mil_scores',
+        'dset_config' : {
+            'size' : 25,
+            'peturb_xy': True,
+        },
+        'dataset' : 'ants_and_bees',
+
+        'epochs' : 50,
+        'init_lr' : 0.01,
+        'decay' : 0.90,
+        'criterion' : {
+            'type' : 'bce_sparse'
+        },
+        'weight_reg' : 0,
+        'batch_size' : 4,
+        'is_tuple' : True,
+    },
+    'ants_bees_MIL_5_T' : {
+        'info' : 'AlexNetConv5 -> MIL -> Sigmoid',
+        'model' : 'alexMIL',
+        'params' : 'mil_scores',
+        'dset_config' : {
+            'size' : 5,
+            'peturb_xy': True,
+        },
+        'dataset' : 'ants_and_bees',
+
+        'epochs' : 500,
+        'init_lr' : 0.001,
+        'decay' : 0.93,
+        'criterion' : {
+            'type' : 'bce_sparse'
+        },
+        'weight_reg' : 0,
+        'batch_size' : 4,
+        'is_tuple' : True,
+    },
+    'ants_bees_MIL_1_T' : {
+        'info' : 'AlexNetConv5 -> MIL -> Sigmoid',
+        'model' : 'alexMIL',
+        'params' : 'mil_scores',
+        'dset_config' : {
+            'size' : 1,
+            'peturb_xy': True,
+        },
+        'dataset' : 'ants_and_bees',
+
+        'epochs' : 10,
+        'init_lr' : 0.001,
+        'decay' : 0.60,
+        'criterion' : {
+            'type' : 'bce_sparse'
+        },
+        'weight_reg' : 0,
+        'batch_size' : 4,
+        'is_tuple' : True,
+    },
+    'ants_bees_FC' : {
         'info' : 'AlexNetConv5 -> FC -> Sigmoid',
         'model' : 'alex',
         'params' : 'predict',
@@ -20,7 +203,7 @@ CONFIGS = {
         'is_tuple' : False,
     },
 
-    'ants_bees_113_F' : {
+    'ants_bees_FC_113_F' : {
         'info' : 'AlexNetConv5 -> FC -> Sigmoid',
         'model' : 'alex',
         'params' : 'predict',
@@ -41,7 +224,7 @@ CONFIGS = {
         'is_tuple' : False,
     },
 
-    'ants_bees_113_T' : {
+    'ants_bees_FC_113_T' : {
         'info' : 'AlexNetConv5 -> FC -> Sigmoid',
         'model' : 'alex',
         'params' : 'predict',
@@ -62,7 +245,7 @@ CONFIGS = {
         'is_tuple' : False,
     },
 
-    'ants_bees_50_F' : {
+    'ants_bees_FC_50_F' : {
         'info' : 'AlexNetConv5 -> FC -> Sigmoid',
         'model' : 'alex',
         'params' : 'predict',
@@ -83,7 +266,7 @@ CONFIGS = {
         'is_tuple' : False,
     },
 
-    'ants_bees_50_T' : {
+    'ants_bees_FC_50_T' : {
         'info' : 'AlexNetConv5 -> FC -> Sigmoid',
         'model' : 'alex',
         'params' : 'predict',
@@ -105,13 +288,13 @@ CONFIGS = {
     },
 
 
-    'ants_bees_25_T' : {
+    'ants_bees_FC_25_F' : {
         'info' : 'AlexNetConv5 -> FC -> Sigmoid',
         'model' : 'alex',
         'params' : 'predict',
         'dset_config' : {
             'size' : 25,
-            'peturb_xy': True,
+            'peturb_xy': False,
         },
         'dataset' : 'ants_and_bees',
 
@@ -125,7 +308,27 @@ CONFIGS = {
         'batch_size' : 4,
         'is_tuple' : False,
     },
-    'ants_bees_5_T' : {
+    'ants_bees_FC_25_T' : {
+        'info' : 'AlexNetConv5 -> FC -> Sigmoid',
+        'model' : 'alex',
+        'params' : 'predict',
+        'dset_config' : {
+            'size' : 25,
+            'peturb_xy': True,
+        },
+        'dataset' : 'ants_and_bees',
+
+        'epochs' : 50,
+        'init_lr' : 0.001,
+        'decay' : 0.60,
+        'criterion' : {
+            'type' : 'bce'
+        },
+        'weight_reg' : 0,
+        'batch_size' : 4,
+        'is_tuple' : False,
+    },
+    'ants_bees_FC_5_T' : {
         'info' : 'AlexNetConv5 -> FC -> Sigmoid',
         'model' : 'alex',
         'params' : 'predict',
@@ -145,7 +348,7 @@ CONFIGS = {
         'batch_size' : 4,
         'is_tuple' : False,
     },
-    'ants_bees_1_T' : {
+    'ants_bees_FC_1_T' : {
         'info' : 'AlexNetConv5 -> FC -> Sigmoid',
         'model' : 'alex',
         'params' : 'predict',

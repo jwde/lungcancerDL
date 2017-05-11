@@ -50,7 +50,8 @@ def get_transforms(dset_config):
                     transforms.RandomHorizontalFlip(),
                     transforms.ToTensor(),
                     random_embed(img_size, peturb_xy),
-                    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                    #transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                    to_bw
                 ]),
                 'val': transforms.Compose([
                     transforms.Scale(256),
@@ -58,11 +59,15 @@ def get_transforms(dset_config):
                     transforms.Scale(embed_size),
                     transforms.ToTensor(),
                     random_embed(img_size, peturb_xy),
-                    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                    #transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                    to_bw
                 ]),
             }
 
     return data_transforms
+
+def to_bw(img2d):
+    return img2d.mean(0)
 
 def random_embed(size, peturb_xy=False):
     def embed(img):
@@ -82,7 +87,8 @@ def random_embed(size, peturb_xy=False):
 
 def get_ants_and_bees(dset_config):
     data_transforms = get_transforms(dset_config)
-    data_dir = '/a/data/lungdl/hymenoptera_data'
+    #data_dir = '/a/data/lungdl/hymenoptera_data'
+    data_dir = '../input/hymenoptera_data'
     dsets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])
              for x in ['train', 'val']}
     dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size=4,

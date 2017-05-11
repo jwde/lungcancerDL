@@ -140,12 +140,16 @@ def get_dset_loader(dataset, dset_config):
     return dset_loaders
 
 def get_model(model):
-    if model == 'alex':
-        return mil2d_models.alexnet256()
+    return {
+        'alex': mil2d_models.alexnet256,
+        'alexMIL': mil2d_models.alexnetMIL
+    }[model]()
+
 def get_criterion(criterion):
-    crit_type = criterion['type']
-    if crit_type == 'bce':
-        return nn.functional.binary_cross_entropy
+    return {
+        'bce': nn.functional.binary_cross_entropy,
+        'bce_sparse': lambda o,l: util.sparse_BCE_loss(o,l,reg=0)
+    }[criterion['type']]
 
 def main(r):
     # Disable interactive mode for matplotlib so docker wont segfault
@@ -160,7 +164,8 @@ def main(r):
     print(config['info'])
     print('-'*10)
 
-    models_dir = config.get('models_dir',"/a/data/lungdl/models")
+    #models_dir = config.get('models_dir',"/a/data/lungdl/models")
+    models_dir = r.MODELS_DIR
 
     net = get_model(config['model'])
     NUM_EPOCHS = config['epochs']
@@ -239,6 +244,7 @@ if __name__ == '__main__':
     parser.add_argument('--TEST', '-t', default='ants_bees', help="One of: alex3d, 3d, simple")
     parser.add_argument('--LOAD_MODEL', default=None, help='Load pretrained model')
     parser.add_argument('--NO_VAL', type=bool, nargs='?', const=True, default=False, help="Don't perform validation step")
+    parser.add_argument('--MODELS_DIR', default='../models/')
 
     r = parser.parse_args()
     if not torch.cuda.is_available():

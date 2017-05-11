@@ -84,7 +84,7 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size,
                     # statistics
                     if get_probs:
                         outputs = get_probs(outputs)
-                    average_precision = metrics.average_precision_score(labels.data.cpu().numpy(), outputs.data.cpu().numpy())
+                    #average_precision = metrics.average_precision_score(labels.data.cpu().numpy(), outputs.data.cpu().numpy())
                     ap_total[phase].add(outputs.data, labels.data)
                     running_loss += loss.data[0]
                     running_corrects += torch.sum((outputs.data > .5) == (labels.data > .5))
