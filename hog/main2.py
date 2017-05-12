@@ -10,6 +10,7 @@ import copy
 import argparse
 import os
 from hw1.features import *
+import sklearn.metrics as metrics
 
 # Within package
 import util
@@ -50,11 +51,12 @@ def main(r):
                          augment_data=augment_data)
     for s in data:
         for i,d in enumerate(data[s]):
+#            if i == 40:
+#                break
             input, label = d
             input = input.numpy()[0,0,:,:,:, np.newaxis]
             label = int(label.numpy()[0][0])
-           # print (input.numpy(), label.numpy())
-            print (input.shape, label)
+            #print (input.shape, label)
             feature_fns = [hog_feature]
             feats = extract_features(input, feature_fns, verbose=True).flatten()
             X[s].append(feats)
@@ -64,34 +66,16 @@ def main(r):
     print (X['train'].shape, X['val'].shape)
     print (y['train'].shape, y['val'].shape)
 
-    train = X['train']
-    val   = X['val']
-    mean_feat = np.mean(train, axis = 0, keepdims = True)
-    
-    #train -= mean_feat 
-    #val   -= mean_feat
-    print (np.sum(train))
-    std_feat = np.std(train, axis =0, keepdims = True)
-    print (std_feat)
-    #train /= std_feat
-    #val  /= std_feat
-    #train = np.hstack([train, np.ones((train.shape[0], 1))])
-    #val = np.hstack([train, np.ones((val.shape[0], 1))])
 
-#PCA???
     from sklearn.decomposition import PCA
-    pca = PCA()
-    pca.fit(X['train'])
-    print (pca.explained_variance_ratio_)
-    X['train'] = pca.transform(X['train'])
-    X['val'] = pca.transform(X['val'])
-    print ("X_train shape", X['train'].shape)
+    #from hw1.classifiers.linear_classifier import LinearSVM
+    from sklearn.svm import SVC
 
-    from hw1.classifiers.linear_classifier import LinearSVM
+    lr = 1e-5
+    reg = 1e-3
 
-    learning_rates = [1e-5, 1e-4, 1e-3]
-    regularization_strengths = [1e-3, 1e-2, 1e-1, 1e0]
-
+    pca_dims = [16, 32, 64, 128, 256, 512, 1024]
+    kernals = ['linear', 'rbf', 'sigmoid']
     results = {}
     best_val = -1
     best_svm = None
@@ -104,19 +88,48 @@ def main(r):
 # with different numbers of bins in the color histogram. If you are careful    #
 # you should be able to get accuracy of near 0.44 on the validation set.       #
 ################################################################################
-    for lr in learning_rates:
-        for reg in regularization_strengths:
-            svm = LinearSVM()
-            loss_hist = svm.train(X['train'], y['train'], learning_rate=lr, reg=reg,
-                          num_iters=10000, verbose=True)
-            val_acc = np.mean(svm.predict(X['val']) == y['val'])
-            results[(lr, reg)] = (np.mean(svm.predict(X['train']) == y['train']), val_acc)
+    USE_PCA = True
+    if not USE_PCA:
+        pca_dims = [0]
+    for kernal in kernals:
+        for d in pca_dims:
+            if USE_PCA:
+                pca = PCA(d)
+                pca.fit(X['train'])
+                #print (pca.explained_variance_ratio)
+                x_train_transformed = pca.transform(X['train'])
+                x_val_transformed   = pca.transform(X['val'])
+            else:
+                x_train_transformed = X['train']
+                x_val_transformed   = X['val']
+            print ("X_train shape", x_train_transformed.shape)
+            svm = SVC(kernel=kernal, verbose = True)
+            #loss_hist = svm.train(x_train_transformed, y['train'], learning_rate=lr, reg=reg,
+            #              num_iters=10000, verbose=False)
+            svm = svm.fit(x_train_transformed, y['train'])
+            val_out = svm.predict(x_val_transformed)
+            print(svm.score(x_val_transformed, y['val']))
+            
+            print(val_out, y['val'])
+            val_acc = np.mean(svm.predict(x_val_transformed) == y['val'])
+            val_auc = metrics.roc_auc_score(y['val'], val_out)
+            val_ap  = metrics.average_precision_score(y['val'], val_out)
+            val_precision = metrics.precision_score(y['val'], val_out)
+            val_recall    = metrics.recall_score(y['val'], val_out)
+            print(val_acc, val_auc, val_ap)
+            results[(kernal,d)] = (np.mean(svm.predict(x_train_transformed) == y['train']), val_acc, val_precision, val_recall, val_auc, val_ap)
             if val_acc > best_val:
                 best_val = val_acc
                 best_svm = svm
-                best_params = lr, reg
+                if USE_PCA:
+                    best_pca = pca
+                best_params = (d,) 
             print ("Val Accuracy:", val_acc)
-            print ("Results", results[(lr, reg)])
+            print ("Results", results[(kernal,d)])
+    for k,v in results.items():
+        kernel,d = k
+        test_acc, acc, prec, rec, auc, ap =v 
+        print(kernel, d,test_acc, acc, prec, rec, auc, ap)
     print (results)
 ################################################################################
 #                              END OF YOUR CODE                                #
@@ -125,14 +138,14 @@ def main(r):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--DATA_DIR', default='/a/data/lungdl/balanced/', help="Path to data directory")
-    parser.add_argument('--LABELS_FILE', default='/a/data/lungdl/balanced_shuffled_labels.csv', help="Path to data directory")
+    parser.add_argument('--DATA_DIR', default='/a/data/lungdl/3Darrays_visual/', help="Path to data directory")
+    parser.add_argument('--LABELS_FILE', default='/a/data/lungdl/cat_solutions.csv', help="Path to data directory")
     parser.add_argument('--NET', default='alex3d', help="One of: alex3d, 3d, simple")
     parser.add_argument('--MODELS_DIR', default='/a/data/lungdl/models/', help='Path to model directory')
     parser.add_argument('--SAVE_NAME', default='tmp.model', help='Name of save model')
     parser.add_argument('--LOAD_MODEL', default=None, help='Load pretrained model')
     parser.add_argument('--NUM_EPOCHS',  '-n', type=int, default=20, help='number of epochs to run')
-    parser.add_argument('--TRAINING_SIZE',  '-s', type=int, default=500, help='number of')
+    parser.add_argument('--TRAINING_SIZE',  '-s', type=int, default=644, help='number of')
     parser.add_argument('--NO_VAL', type=bool, nargs='?', const=True, default=False, help="Don't perform validation step")
     
     r = parser.parse_args()
