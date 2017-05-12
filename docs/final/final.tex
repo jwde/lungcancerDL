@@ -1,0 +1,227 @@
+\documentclass[twocolumn,10pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+%\usepackage[english]{babel}
+%\usepackage{biblatex}
+\usepackage[margin=1in]{geometry}
+\setlength{\columnsep}{33pt}
+\setcounter{secnumdepth}{3}
+\usepackage{minipage-marginpar}
+\newcommand\vfilbreak[1]{\vskip 0pt plus #1 \penalty-200 \vskip 0pt plus -#1}
+\newenvironment{mpmp}[1]
+               {\begin{minipagewithmarginpars}{#1}}
+               {\end{minipagewithmarginpars}}
+\usepackage{morefloats}
+\usepackage{booktabs}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{hhline}
+
+\title{A (failed) attempt at Lung Cancer Detection with Multi-
+Instance Networks}
+\author{Jay DeStories, Jason Fan, Alex Tong}
+
+\newcommand{\red}[1]{{\color{red}#1}}
+\newcommand{\temp}[1]{{\red{#1}\\}}
+\renewcommand{\b}{\boldsymbol}
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+
+\begin{document}
+\maketitle
+
+\section{Part I: The (failed) Attempt}
+\subsection{Introduction and Problem Statement}
+The problem of image segmentation and structure annotation within the 
+field of biomedical imaging has become a well developed and very active field in
+the past years. In 2016 and 2015, the LUng Nodule Annotation (LUNA) challenge and 
+SPIE Lungx challenge, asked researchers to develop models to identify pulmonary 
+nodules in lung CT slices. With the 2016 LUNA Challenge, researchers gained access
+to annotated CT slices that contained segmentation ground truths for abnormal 
+nodules. 
+In the 2015 SPIE less than 80 CT annotated images of malignant nodules were 
+released to the public.
+
+Finally, with the 2017 Kaggle Data Science Bowl, a larger dataset of
+1000+ lung CT images in DICOM format was finally released with cancer/no cancer 
+labels. This has allowed researchers to answer a deeper question about lung CT
+scans; whether or not there are indicators of malignancy and cancer in a patient's
+CT scan.
+
+There is, however, one caveat to the Kaggle dataset. 
+Although the presence of malignancy is indicated by global, binary 
+cancer/no-cancer label, the location of malignant nodules and structures are
+\textit{not} annotated in the training data.
+
+Inspired by recent work in multiple instance learning for 
+whole mammogram classification
+\cite{DBLP:journals/corr/ZhuLVX16},
+We investigated two methods for Lung Cancer detection using Multi-Instance 
+Networks.
+
+\subsection{Related Work}
+Over the past decade there has been a significant amount of work towards 
+computer aided diagnosis of lung cancer \cite{cad_1998}. Depending on what kind
+of data researchers have had access to, previous efforts to identify lung cancer
+can be categorized by two main approaches. 
+
+(1) Pulmonary Nodule Detection methods use 
+image processing techniques to segment and annotate nodules
+\cite{FeatureBasedLungNoduleDetection_2017, 
+     LungNoduleDetectionWeaklyLabeled_2016, U-net_2015}. These methods
+mimic radiologists by looking for abnormalities in the form of
+``solitary white nodule-like blob[s]" in a chest x-rays and CT scans.
+Lung nodules are potential cancer indicators, and as such are an important part 
+in early lung cancer diagnosis. However, not all pulmonary nodules are malignant
+and many are benign, there will be false positives in diagnosis if we naively
+associate nodule presence with cancer. 
+
+%\red{HELP I MADE THIS TERM UP}
+(2) Direct inference and classification methods
+instead attempts to directly predict the probability of cancer using x-ray and
+CT images without nodule detection
+\cite{Kuruvilla_2013, classificationOfNodules_2016}. 
+
+One challenge that almost all researchers in biomedical image inference face is 
+the problem with datasets being small and weakly labeled. Images labeled with
+cancer/no-cancer binaries are weakly labeled because imaged tissues only display
+malignancy locally; not \textit{all} of the tissue in an image will have cancer.
+Multi-Instance Networks have been trained from binary labels to classify whole
+mammogram images \cite{Maron:1998:FML:302528.302753}.
+
+\subsection{Data}
+\begin{figure}[h!]
+  \label{fig:data}
+  \begin{center}
+	\begin{tabular}{ | c || c |c| c| }
+	\hline
+	 - & Unbalanced & Balanced & Test\\
+	\hhline{|=||=|=|=|}
+	\# Cancer & 362 & 322 & 50 \\
+	\hline
+	\# No Cancer & 1035 & 322 & 121\\
+	\hline
+	\# Total & 1397 & 644 & 171\\
+	\hline
+	\end{tabular}  
+\end{center}
+	\caption{Class distributions for datasets}
+\end{figure}
+
+
+\subsection{Multi-Instance Learning}
+In a malignant lung volume, only a small percentage of the actual tissue is
+ malignant.  As such, it may not be appropriate to learn a cancer/no-cancer
+ binary classification for an entire lung volume. To better model the
+ sparsity of malignant tissue in a lung volume, we instead learn a cancer/no-cancer
+ classification and adjust the loss function appropriately.
+
+
+
+We then optimize our model's parameters with the following two loss functions.  
+
+
+\subsubsection{Prediction}
+
+We will define a model where we deem a lung volume cancerous if there exists
+a receptive field that is classified to be cancerous. Let $F$ be a set of $N$ feature vectors that encode a
+receptive field, or an instance, of a given
+lung slice. 
+Then $\b r$, the vector of activations, is defined element wise by
+\begin{equation}
+r_i = \b w^T \b f_i + b.
+\end{equation}
+Where $\b f_i$ and $r_i$ is the $i$-th element of $F$, and $\b r$ respectively.
+
+We then use $\b r $ to predict the probability of cancer $p(y = 1)$ where
+\begin{equation}
+t = p(y = 1) = \max_{r_i} \ \sigma(r_i).
+\end{equation}
+
+\subsubsection{Sparse Binary Cross Entropy Loss}
+First, we use regular binary cross entropy loss, which is defined by,
+\begin{equation}
+L_{max} = -y\log(t) - (1-y)\log(1-t).
+\end{equation}
+
+Second, we use sparse softmax loss as suggested by Zhu et. al \cite{DBLP:journals/corr/ZhuLVX16},
+defined by,
+\begin{equation}L_{sparse} = -y\log(t) - (1-y)\log(1-t)+ \lambda_r\|\b r\|_1)
+\end{equation}
+where the regularization parameter $\lambda_r\|\b r\|_1$ is scaled by
+hyperparameter $\lambda_r$.
+
+We use this sparse softmax loss because it penalizes a model that classify many instances 
+to be cancerous. Sparse softmax loss encourages the model to only classify
+few instances to be cancerous which better models our understanding of 
+cancer.
+
+\subsection{Method}
+
+\subsection{Network Architectures}
+\temp{TODO}
+\begin{figure}
+  \label{fig:architecture}
+  \begin{center}
+	\begin{tabular}{ | c |c| c| }
+	\hline
+	 FC & RF-MIL & Z-MIL\\
+	\hhline{|=|=|=|}
+	AlexNet Conv5 & AlexNet Conv5  & AlexNet Conv5  \\
+	\hline
+	{Conv3D  (60, 6, 6)} & Conv3D (1, 1, 1)  & Conv3D (1, 6, 6)   \\
+	\hline
+	- & Pool (60, 6, 6) & Pool (1,6,6) \\
+	\hline
+	Sigmoid & Sigmoid & Sigmoid \\
+	\hline
+	\end{tabular}	
+  \end{center}
+  \caption{Network Architectures}
+\end{figure}
+
+\subsubsection{Pre-processing}
+
+\subsubsection{RGB to Grayscale}
+When we attempted to use the same technique Zhu et. al. 
+  used to extract slice-wise features for lung 
+  volumes with pretrained convolutional neural networks (CNN),
+  we could not fit all sixty DICOM slices of a lung volume
+  into VRAM. 
+  We ran out of VRAM because, in order to use typical CNNs that 
+  expect a 3 channel deep RGB image, the implementation used by Zhu et al. 
+  effectively tripled the necessary data volume consumed by the first layer because it
+  naively and redundantly copies each grayscale 224 by 224 slice to each of the channels;
+  However, these redundant copies of the
+  grayscale slices in the RGB channels can be eliminated by manipulating the first convolutional
+  layer of our pretrained CNNs. 
+  Let us consider the first convolution applied to one RGB pixel $\b x$,  with weight vector $\b w$, 
+  bias term $b$, and test time channel-wise mean $\b \mu$. 
+  If all three
+  entries in $\b x$ have value $\hat x$, we can see that,
+  \begin{align*}
+& \ \b w \ast (\b x - \b \mu) + b \\
+= & \ (\b w \ast \b x) + (b - \b w \ast \b \mu)\\
+= & \ \hat x \|\b w\|_1 + (b - \b w \ast \b \mu).
+\numberthis
+\end{align*}
+  This means that, with weight vector $\|\b w\|_1$, bias term $(b - \b w \ast \b \mu)$ 
+  and no test-time mean, we can convert a redundant 3 channel deep convolution on a
+  grayscale image copied 3 times into the RGB space, to a 1 channel deep convolution!
+  Using this RGB to grayscale conversion, we reduced the VRAM usage in the
+  first layer by a factor of 3 and were able to forward pass entire
+  lung volumes to extract slice-wise features.
+
+\subsubsection{Augmentation}
+
+\subsubsection{Training}
+
+\subsection{Results}
+
+\section{Part II: Why did the networks fail?}
+\subsection{HOG features + SVM baseline}
+\subsection{Testing RF-MIL}
+
+\bibliographystyle{unsrt}%Used BibTeX style is unsrt
+\bibliography{final}
+\end{document}
