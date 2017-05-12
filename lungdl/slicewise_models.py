@@ -38,6 +38,15 @@ def simple_slicerMIL(extractor, feature_dims, freeze = True):
         nn.Conv3d(feature_dims, 1, 1, 1, 0))
     return PretrainedSlicerMIL(extractor, mil_scores)
 
+def simple_slicerZMIL(extractor, feature_dims, feature_shape, freeze =True):
+    cnn_to_bw(extractor, IMGNET_MEAN, IMGNET_STD)
+    if freeze:
+        for param in extractor.parameters():
+            param.requires_grad = False
+    mil_scores = nn.Sequential(
+        nn.Conv3d(feature_dims, 1, feature_shape, 1, 0))
+    return PretrainedSlicerMIL(extractor, mil_scores)
+
 def alex_shallow_features(n):
     alex = models.alexnet(pretrained=True)
     return nn.Sequential(*[alex.features[i] for i in range(n)])
@@ -96,6 +105,10 @@ def Alex():
 def AlexMIL():
     extractor = models.alexnet(pretrained=True).float().features
     return simple_slicerMIL(extractor, 256).float()
+
+def AlexZMIL():
+    extractor = models.alexnet(pretrained=True).float().features
+    return simple_slicerZMIL(extractor, 256, (60,6,6)).float()
 
 def AlexShallow():
     extractor = alex_shallow_features(6)

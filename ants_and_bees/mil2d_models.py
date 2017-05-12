@@ -38,11 +38,6 @@ def simple_mil(extractor, channels, freeze=True):
         for param in extractor.parameters():
             param.requires_grad = False
     mil_scores = nn.Sequential(
-        #nn.Conv2d(channels, 128, 1, 1, 0),
-        #nn.ReLU(),
-        #nn.Conv2d(128, 128, 1, 1, 0),
-        #nn.ReLU(),
-        nn.BatchNorm2d(channels),
         nn.Conv2d(channels, 1, 1, 1, 0)
     )
     return PretrainedMIL(extractor, mil_scores)

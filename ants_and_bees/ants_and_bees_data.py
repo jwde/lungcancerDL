@@ -30,13 +30,15 @@ def get_transforms(dset_config):
                     transforms.RandomSizedCrop(227),
                     transforms.RandomHorizontalFlip(),
                     transforms.ToTensor(),
-                    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                    #transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                    to_bw
                 ]),
                 'val': transforms.Compose([
                     transforms.Scale(256),
                     transforms.CenterCrop(227),
                     transforms.ToTensor(),
-                    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                    #transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                    to_bw
                 ]),
             }
     else:
@@ -88,7 +90,8 @@ def random_embed(size, peturb_xy=False):
 def get_ants_and_bees(dset_config):
     data_transforms = get_transforms(dset_config)
     #data_dir = '/a/data/lungdl/hymenoptera_data'
-    data_dir = '../input/hymenoptera_data'
+    #data_dir = '../input/hymenoptera_data'
+    data_dir = 'input/hymenoptera_data'
     dsets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])
              for x in ['train', 'val']}
     dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size=4,

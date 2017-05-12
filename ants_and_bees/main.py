@@ -27,11 +27,12 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size,
     since = time.time()
 
     best_model = model
-    best_acc = 0.0
+    best_loss = 1e12
     trainlen = len(dset_loaders['train'])
     train_loss_history = []
     validation_loss_history = []
-
+    best_ap = 0
+    
     try:
         for epoch in range(num_epochs):
             print('Epoch {}/{}'.format(epoch, num_epochs))
@@ -101,12 +102,15 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size,
                 # Note: BCE loss already divides by batchsize
                 epoch_loss = running_loss / (len(dset_loaders[phase]))
                 epoch_acc = float(running_corrects) / (len(dset_loaders[phase]) * batch_size)
+                ap = ap_total[phase].value()[0]
 
-                print('{} Loss: {:.4f} Acc: {:.4f} AP {:.4f}'.format(phase, epoch_loss, epoch_acc, ap_total[phase].value()[0]))
+                print('{} Loss: {:.4f} Acc: {:.4f} AP {:.4f}'.format(phase, epoch_loss, epoch_acc, ap))
+
 
                 # deep copy the model
-                if phase == 'val' and epoch_acc > best_acc:
-                    best_acc = epoch_acc
+                if phase == 'val' and epoch_loss < best_loss:
+                    best_loss = epoch_loss
+                    best_ap = ap
                     best_model = copy.deepcopy(model)
 
             #flat_weights = []
@@ -125,7 +129,8 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size,
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
-    print('Best val Acc: {:4f}'.format(best_acc))
+    print('Best val AP: {:4f}'.format(best_ap))
+    print('Best val Loss: {:4f}'.format(best_loss))
     return best_model, train_loss_history, validation_loss_history
 
 # Functions to parse configurations

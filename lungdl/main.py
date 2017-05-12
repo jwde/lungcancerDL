@@ -11,10 +11,13 @@ import argparse
 import os
 import sklearn.metrics as metrics
 from apmeter import APMeter
+from config import CONFIGS
 
 # Within package
 import models
 import util
+import vgg3d
+import slicewise_models
 
 def train_model(model,dset_loaders, criterion, optimizer, batch_size,
                 get_probs = None ,lr_scheduler=None, num_epochs=25, 
@@ -22,10 +25,10 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size,
     since = time.time()
 
     best_model = model
-    best_acc = 0.0
     trainlen = len(dset_loaders['train'])
     train_loss_history = []
     validation_loss_history = []
+    best_loss = 100000000.
 
     try:
         for epoch in range(num_epochs):
@@ -99,8 +102,8 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size,
                 print('{} Loss: {:.4f} Acc: {:.4f} AP {:.4f}'.format(phase, epoch_loss, epoch_acc, ap_total[phase].value()[0])) 
 
                 # deep copy the model
-                if phase == 'val' and epoch_acc > best_acc:
-                    best_acc = epoch_acc
+                if phase == 'val' and epoch_loss < best_loss:
+                    best_loss = epoch_loss 
                     best_model = copy.deepcopy(model)
 
             #flat_weights = []
@@ -119,115 +122,9 @@ def train_model(model,dset_loaders, criterion, optimizer, batch_size,
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
-    print('Best val Acc: {:4f}'.format(best_acc))
+    print('Best val loss: {:4f}'.format(best_loss))
     return best_model, train_loss_history, validation_loss_history
 
-import vgg3d
-import slicewise_models
-CONFIGS = {
-    'simple' : {
-        'net': models.Simple,
-        'crop' : ((30,33), (0,227), (0,227)),
-    },
-    '3d': {
-        'net' : models.Cnn3d,
-        'crop' : ((0,60),(0,224),(0,224)),
-        'batch_size' : 3,
-    },
-    'alex3d' :{
-        'net' : models.Alex3d,
-        'crop' : ((0,60),(0,227),(0,227)),
-        'params': 'predict',
-        'batch_size' : 1, #ONLY WORKS WITH BATCHSIZE 1
-        
-    },
-    'vgg3d' : {
-        'net' : vgg3d.get_pretrained_2D_layers,
-        'batch_size' : 3,
-    },
-    'alexslicer' :{
-        'net' : slicewise_models.Alex,
-        'params': 'predict',
-        'lr': 0.00001,
-        'lr_scheduler' : util.exp_lr_decay(0.00001, 0.85),
-        'batch_size' : 20,
-        'augment_data': True
-    },
-    'alexslicerMIL':{
-        'net' : slicewise_models.AlexMIL,
-        'params': 'mil_scores',
-        'lr': 0.004, # overfits 20 examples with LR 0.004
-        #'lr_scheduler' : util.exp_lr_decay(0.00001, 0.85),
-        'batch_size' : 20,
-        'augment_data': True,
-        'criterion' : lambda y, t: util.sparse_BCE_loss(y, t, 0.00001),
-        'get_probs' : lambda outs: outs[0],
-    },
-    'alexslicershallow' :{
-        'net' : slicewise_models.AlexShallow,
-        'params': 'predict',
-        'lr': 0.000001,
-        #'lr_scheduler' : util.exp_lr_decay(0.00005, 0.85),
-        'batch_size' : 20,
-        'augment_data': False
-    },
-    'alexslicershallowMIL':{
-        'net' : slicewise_models.AlexShallowMIL,
-        'params': 'mil_scores',
-        'lr': 0.004, # overfits 20 examples with LR 0.004
-        'lr_scheduler' : util.exp_lr_decay(0.004, 0.85),
-        'batch_size' : 20,
-        'augment_data': False,
-        'criterion' : lambda y, t: util.sparse_BCE_loss(y, t, 0.00001),
-        'get_probs' : lambda outs: outs[0],
-    },
-    'resnet50' : {
-        'net' : lambda: slicewise_models.ResNet(50),
-        'crop' : ((0,60),(0,225),(0,225)),
-        'params': 'predict',
-        'lr': 0.000005,
-        'batch_size': 4,
-        'lr_scheduler': util.exp_lr_decay(0.000005, 0.95),
-        'augment_data': True
-    },
-    'resnet50MIL' : {
-        'net' : lambda: slicewise_models.ResNetMIL(50),
-        'crop' : ((0,60),(0,224),(0,224)),
-        'params': 'mil_scores',
-        'lr': 0.0005,
-        'batch_size': 4,
-        'lr_scheduler': util.exp_lr_decay(0.0005, 0.95),
-        'augment_data': False,
-        'criterion' : lambda y, t: util.sparse_BCE_loss(y, t, 0.00001),
-        'get_probs' : lambda outs: outs[0],
-    
-    },
-    'resnet152' : {
-        'net' : lambda: slicewise_models.ResNet(152),
-        'crop' : ((0,60),(0,225),(0,225)),
-        'params': 'predict',
-        'lr': 0.000005,
-        'lr_scheduler': util.exp_lr_decay(0.000005, 0.95),
-        'batch_size': 4,
-        'augment_data': True,
-        'reg': 0.0001
-    },
-    'resnet152boosted' : {
-        'net': lambda: slicewise_models.ResNetBoosted(152),
-        'crop' : ((0,60),(0,225),(0,225)),
-        'xgboost': True,
-        'batch_size': 4,
-        'augment_data': False,
-        'max_depth': 2
-    },
-    'alexboosted': {
-        'net': lambda: slicewise_models.AlexBoosted(),
-        'xgboost': True,
-        'batch_size': 4,
-        'augment_data': False,
-        'max_depth': 3
-    }
-}
 def main(r):
     # Disable interactive mode for matplotlib so docker wont segfault
     #plt.ioff()
