@@ -1,0 +1,2 @@
+got (int, torch.cuda.FloatTensor, torch.cuda.FloatTensor, torch.cuda.FloatTensor, bool, torch.cuda.FloatTensor, torch.cuda.FloatTensor), but expected (int state, torch.cuda.FloatTensor input, torch.cuda.LongTensor target, torch.cuda.FloatTensor output, bool sizeAverage, [torch.cuda.FloatTensor weights or None], torch.cuda.FloatTensor total_weight)
+

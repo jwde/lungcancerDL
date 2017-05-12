@@ -146,6 +146,6 @@ def exp_lr_decay(init_lr, decay_rate):
 def sparse_BCE_loss(outputs, labels, reg=0.0001):
     probs, scores = outputs
     loss = nn.functional.binary_cross_entropy(probs, labels)
-    l1loss = nn.functional.sigmoid(scores).sum(1).sum(0) / probs.size()[0]
+    l1loss = scores.sum(1).sum(0) / probs.size()[0]
 
     return loss + reg * l1loss
