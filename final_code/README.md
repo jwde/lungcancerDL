@@ -7,7 +7,7 @@ Jay DeStories, Jason Fan, Alex Tong
 
 Running the kernels:
 
-    Lungs: everything for lungs lives in the lungdl folder
+    Lungs: everything for lungs except for HOG lives in the lungdl folder
 
         With Docker installed, launch our container by running start.sh
 
@@ -40,6 +40,11 @@ Running the kernels:
                     An entry in models contains:
                         (model name from config, saved model name, data dir)
                 python evaluate_all_models.py
+
+        Running HOG model: in hog folder
+            python main2.py [parameters]
+                --DATA_DIR         Path to the data directory
+                --LABELS_FILE      Path to the labels csv
 
 
     Ants vs Bees: everything lives in the ants_and_bees folder
