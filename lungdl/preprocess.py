@@ -1,3 +1,9 @@
+"""
+Disclaimer:
+THIS WORK WAS INSPIRED BY Guido Zuidhof's "Full Preprocessing Tutorial"
+A kernal on kaggle.
+https://www.kaggle.com/gzuidhof/full-preprocessing-tutorial
+"""
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import dicom
